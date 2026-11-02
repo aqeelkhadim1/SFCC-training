@@ -1,0 +1,33 @@
+{
+  "name": "app_custom_cartridge",
+  "version": "1.0.0",
+  "description": "Custom cartridge for SFCC customer registration enhancements",
+  "main": "index.js",
+  "packageName": "app_custom_cartridge",
+  "paths": {
+    "base": "../storefront-reference-architecture-master/cartridges/app_storefront_base"
+  },
+  "scripts": {
+    "compile:js": "node ../storefront-reference-architecture-master/node_modules/sgmf-scripts/index.js --compile js",
+    "compile:scss": "node ../storefront-reference-architecture-master/node_modules/sgmf-scripts/index.js --compile css",
+    "build": "npm run compile:js && npm run compile:scss",
+    "watch": "node ../storefront-reference-architecture-master/node_modules/sgmf-scripts/index.js --watch"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.6.3",
+    "@babel/plugin-proposal-object-rest-spread": "^7.6.2",
+    "@babel/preset-env": "^7.6.3",
+    "autoprefixer": "^10.4.19",
+    "babel-loader": "^8.0.6",
+    "css-loader": "^6.11.0",
+    "css-minimizer-webpack-plugin": "^5.0.1",
+    "mini-css-extract-plugin": "^2.9.0",
+    "postcss-loader": "^8.1.1",
+    "sass": "^1.77.2",
+    "sass-loader": "^14.2.1",
+    "sgmf-scripts": "^2.6.0",
+    "webpack": "^5.91.0",
+    "webpack-cli": "^5.1.4",
+    "webpack-remove-empty-scripts": "^1.0.4"
+  }
+}
