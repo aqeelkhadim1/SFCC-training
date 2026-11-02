@@ -1,0 +1,25 @@
+{
+  "compilerOptions": {
+    "target": "es6",
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "baseUrl": ".",
+    "paths": {
+      "*": [
+        "./*",
+        "cartridges/*",
+        "cartridges/app_custom_cartridge/cartridge/*",
+        "cartridges/app_storefront_base/cartridge/*",
+        "cartridges/modules/*"
+      ]
+    },
+    "checkJs": false
+  },
+  "include": [
+    "cartridges/**/*"
+  ],
+  "exclude": [
+    "node_modules",
+    "coverage"
+  ]
+}
