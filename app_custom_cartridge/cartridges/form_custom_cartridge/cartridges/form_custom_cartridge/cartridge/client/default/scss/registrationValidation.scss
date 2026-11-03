@@ -1,0 +1,30 @@
+// Custom styles for registration form fields
+#dob-calendar-btn {
+    cursor: pointer;
+    border-color: #ced4da;
+    background-color: #f8f9fa;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 12px;
+
+    svg {
+        fill: #495057;
+        width: 16px;
+        height: 16px;
+    }
+
+    &:hover {
+        background-color: #e9ecef;
+        svg {
+            fill: #212529;
+        }
+    }
+}
+
+.input-group {
+    > .invalid-feedback {
+        width: 100%;
+        margin-top: 0.25rem;
+    }
+}
