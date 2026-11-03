@@ -1,9 +1,9 @@
 {
-  "name": "app_custom_cartridge",
+  "name": "form_custom_cartridge",
   "version": "1.0.0",
   "description": "Custom cartridge for SFCC customer registration enhancements",
   "main": "index.js",
-  "packageName": "app_custom_cartridge",
+  "packageName": "form_custom_cartridge",
   "paths": {
     "base": "../storefront-reference-architecture-master/cartridges/app_storefront_base"
   },
@@ -11,7 +11,8 @@
     "compile:js": "node ../storefront-reference-architecture-master/node_modules/sgmf-scripts/index.js --compile js",
     "compile:scss": "node ../storefront-reference-architecture-master/node_modules/sgmf-scripts/index.js --compile css",
     "build": "npm run compile:js && npm run compile:scss",
-    "watch": "node ../storefront-reference-architecture-master/node_modules/sgmf-scripts/index.js --watch"
+    "watch": "node ../storefront-reference-architecture-master/node_modules/sgmf-scripts/index.js --watch",
+    "uploadCartridge": "node ../storefront-reference-architecture-master/node_modules/sgmf-scripts/index.js --uploadCartridge form_custom_cartridge"
   },
   "devDependencies": {
     "@babel/core": "^7.6.3",

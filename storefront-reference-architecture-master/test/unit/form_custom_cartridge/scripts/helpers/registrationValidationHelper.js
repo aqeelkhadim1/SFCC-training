@@ -1,7 +1,7 @@
 'use strict';
 
 var assert = require('chai').assert;
-var registrationValidationHelper = require('../../../../../../app_custom_cartridge/cartridges/app_custom_cartridge/cartridge/scripts/helpers/registrationValidationHelper');
+var registrationValidationHelper = require('../../../../../../form_custom_cartridge/cartridges/form_custom_cartridge/cartridge/scripts/helpers/registrationValidationHelper');
 
 describe('registrationValidationHelper', function () {
     describe('isValidDob', function () {
