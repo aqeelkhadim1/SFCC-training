@@ -193,20 +193,25 @@ function handleLiveValidation() {
         }
     });
 
-    // Live typing validation and auto-formatting for Phone Number
+    // Live typing validation and progressive auto-formatting for Phone Number
     $phone.on('input', function () {
         phoneInteracted = true;
         var raw = $(this).val();
-        var digits = raw.replace(/\D/g, '');
+        var digits = raw.replace(/\D/g, '').slice(0, 10);
+        var formatted = '';
 
-        // Auto-format to (999) 999-9999 if user types digits
-        if (digits.length > 0 && !raw.startsWith('(') && raw.indexOf(')') === -1) {
-            if (digits.length > 10) {
-                digits = digits.substring(0, 10);
+        if (digits.length > 0) {
+            if (digits.length <= 3) {
+                formatted = '(' + digits;
+            } else if (digits.length <= 6) {
+                formatted = '(' + digits.slice(0, 3) + ') ' + digits.slice(3);
+            } else {
+                formatted = '(' + digits.slice(0, 3) + ') ' + digits.slice(3, 6) + '-' + digits.slice(6);
             }
-            if (digits.length === 10) {
-                $(this).val('(' + digits.substring(0, 3) + ') ' + digits.substring(3, 6) + '-' + digits.substring(6, 10));
-            }
+        }
+
+        if (raw !== formatted) {
+            $(this).val(formatted);
         }
 
         validatePhoneField($phone, $phoneError);
