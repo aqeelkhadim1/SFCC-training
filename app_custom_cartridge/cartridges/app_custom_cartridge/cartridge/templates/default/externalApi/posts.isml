@@ -1,0 +1,83 @@
+<isdecorate template="common/layout/page">
+    <div class="container my-4">
+        <!--- Page Header --->
+        <div class="row align-items-center mb-3">
+            <div class="col-sm-8">
+                <h1 class="page-title mb-1">Posts Management</h1>
+                <p class="text-muted small mb-0">External REST API Integration (JSONPlaceholder)</p>
+            </div>
+            <div class="col-sm-4 text-sm-right mt-3 mt-sm-0">
+                <!--- Create Post Placeholder (Day 2) --->
+                <button type="button" class="btn btn-primary" disabled title="Create Post feature will be available on Day 2">
+                    <i class="fa fa-plus" aria-hidden="true"></i> Create New Post
+                </button>
+            </div>
+        </div>
+
+        <!--- Error Message Alert --->
+        <isif condition="${pdict.errorMessage}">
+            <div class="alert alert-danger alert-dismissible fade show my-3" role="alert">
+                <i class="fa fa-exclamation-triangle mr-2" aria-hidden="true"></i>
+                <span>${pdict.errorMessage}</span>
+            </div>
+        </isif>
+
+        <!--- Empty Records Message --->
+        <isif condition="${!pdict.errorMessage && (!pdict.posts || pdict.posts.length === 0)}">
+            <div class="card my-4 text-center py-5">
+                <div class="card-body">
+                    <p class="card-text text-muted mb-0">No records found from external API.</p>
+                </div>
+            </div>
+        </isif>
+
+        <!--- Posts Table --->
+        <isif condition="${pdict.posts && pdict.posts.length > 0}">
+            <div class="card shadow-sm">
+                <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                    <span class="font-weight-bold">Total Posts: ${pdict.posts.length}</span>
+                    <span class="badge badge-info">Day 1 Scope</span>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover table-striped mb-0">
+                        <thead class="thead-dark">
+                            <tr>
+                                <th scope="col" style="width: 70px;" class="text-center">ID</th>
+                                <th scope="col" style="width: 90px;" class="text-center">User ID</th>
+                                <th scope="col" style="width: 250px;">Title</th>
+                                <th scope="col">Description</th>
+                                <th scope="col" style="width: 210px;" class="text-center">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <isloop items="${pdict.posts}" var="post">
+                                <tr>
+                                    <td class="text-center font-weight-bold align-middle">${post.id}</td>
+                                    <td class="text-center align-middle">${post.userId}</td>
+                                    <td class="align-middle font-weight-bold text-dark">${post.title}</td>
+                                    <td class="align-middle text-secondary small">${post.body}</td>
+                                    <td class="text-center align-middle">
+                                        <div class="btn-group btn-group-sm" role="group" aria-label="Post Actions">
+                                            <!--- View Action: tests getPostById(postId) via JSON route --->
+                                            <a href="${URLUtils.url('ExternalApi-GetPost', 'id', post.id)}" class="btn btn-outline-info" target="_blank" title="View Post Details (JSON)">
+                                                View
+                                            </a>
+                                            <!--- Edit Action Placeholder (Day 2) --->
+                                            <button type="button" class="btn btn-outline-secondary" disabled title="Edit Post (Available Day 2)">
+                                                Edit
+                                            </button>
+                                            <!--- Delete Action Placeholder (Day 2) --->
+                                            <button type="button" class="btn btn-outline-danger" disabled title="Delete Post (Available Day 2)">
+                                                Delete
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </isloop>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </isif>
+    </div>
+</isdecorate>
