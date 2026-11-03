@@ -10,6 +10,27 @@ server.extend(module.superModule);
 
 // @ts-ignore
 var csrfProtection = require('*/cartridge/scripts/middleware/csrf');
+var Resource = require('dw/web/Resource');
+var Transaction = require('dw/system/Transaction');
+// @ts-ignore
+var registrationValidationHelper = require('../scripts/helpers/registrationValidationHelper');
+
+/**
+ * Invalidates a form field, sets its localized error message, and invalidates the base form element.
+ *
+ * @param {Object} form - The SFRA form object
+ * @param {Object} field - The form field to invalidate
+ * @param {string} resourceKey - The error resource bundle key
+ * @param {Object} [fieldBase] - The underlying base form element (optional)
+ */
+function invalidateField(form, field, resourceKey, fieldBase) {
+    field.valid = false;
+    field.error = Resource.msg(resourceKey, 'forms', null);
+    form.valid = false;
+    if (fieldBase && typeof fieldBase.invalidateFormElement === 'function') {
+        fieldBase.invalidateFormElement();
+    }
+}
 
 /**
  * Account-SubmitRegistration : Prepend middleware to enforce server-side validation
@@ -28,53 +49,34 @@ server.prepend(
     server.middleware.https,
     csrfProtection.validateAjaxRequest,
     function (req, res, next) {
-        var Resource = require('dw/web/Resource');
-        // @ts-ignore
-        var registrationValidationHelper = require('../scripts/helpers/registrationValidationHelper');
         // eslint-disable-next-line dot-notation
         var registrationForm = server.forms['getForm']('profile');
+        var customer = registrationForm.customer;
+        var baseCustomer = registrationForm.base && registrationForm.base.customer;
 
-        var dob = registrationForm.customer.dateofbirth.value;
-        var phone = registrationForm.customer.phone.value;
+        var dobField = customer.dateofbirth;
+        var phoneField = customer.phone;
+        var dob = dobField.value ? dobField.value.trim() : '';
+        var phone = phoneField.value ? phoneField.value.trim() : '';
 
         // Date of Birth validation
-        if (!dob || dob.trim() === '') {
-            registrationForm.customer.dateofbirth.valid = false;
-            registrationForm.customer.dateofbirth.error = Resource.msg('error.message.required.dob', 'forms', null);
-            registrationForm.valid = false;
-            if (registrationForm.base && registrationForm.base.customer && registrationForm.base.customer.dateofbirth) {
-                registrationForm.base.customer.dateofbirth.invalidateFormElement();
-            }
-        } else if (!registrationValidationHelper.isValidDob(dob.trim())) {
-            registrationForm.customer.dateofbirth.valid = false;
-            registrationForm.customer.dateofbirth.error = Resource.msg('error.message.invalid.dob', 'forms', null);
-            registrationForm.valid = false;
-            if (registrationForm.base && registrationForm.base.customer && registrationForm.base.customer.dateofbirth) {
-                registrationForm.base.customer.dateofbirth.invalidateFormElement();
-            }
+        if (!dob) {
+            invalidateField(registrationForm, dobField, 'error.message.required.dob', baseCustomer && baseCustomer.dateofbirth);
+        } else if (!registrationValidationHelper.isValidDob(dob)) {
+            invalidateField(registrationForm, dobField, 'error.message.invalid.dob', baseCustomer && baseCustomer.dateofbirth);
         }
 
         // Phone Number validation
-        if (!phone || phone.trim() === '') {
-            registrationForm.customer.phone.valid = false;
-            registrationForm.customer.phone.error = Resource.msg('error.message.required.phone', 'forms', null);
-            registrationForm.valid = false;
-            if (registrationForm.base && registrationForm.base.customer && registrationForm.base.customer.phone) {
-                registrationForm.base.customer.phone.invalidateFormElement();
-            }
-        } else if (!registrationValidationHelper.isValidPhone(phone.trim())) {
-            registrationForm.customer.phone.valid = false;
-            registrationForm.customer.phone.error = Resource.msg('error.message.invalid.phone', 'forms', null);
-            registrationForm.valid = false;
-            if (registrationForm.base && registrationForm.base.customer && registrationForm.base.customer.phone) {
-                registrationForm.base.customer.phone.invalidateFormElement();
-            }
+        if (!phone) {
+            invalidateField(registrationForm, phoneField, 'error.message.required.phone', baseCustomer && baseCustomer.phone);
+        } else if (!registrationValidationHelper.isValidPhone(phone)) {
+            invalidateField(registrationForm, phoneField, 'error.message.invalid.phone', baseCustomer && baseCustomer.phone);
         }
 
         // Store validated custom attributes in viewData for BeforeComplete hook
         res.setViewData({
-            customDob: dob ? dob.trim() : '',
-            customPhone: phone ? phone.trim() : ''
+            customDob: dob,
+            customPhone: phone
         });
 
         return next();
@@ -94,24 +96,18 @@ server.prepend(
  */
 server.append('SubmitRegistration', function (req, res, next) {
     this.on('route:BeforeComplete', function (innerReq, innerRes) { // eslint-disable-line no-shadow
-        var Transaction = require('dw/system/Transaction');
-        // @ts-ignore
-        var registrationValidationHelper = require('../scripts/helpers/registrationValidationHelper');
         var viewData = innerRes.getViewData();
 
         if (viewData && viewData.authenticatedCustomer) {
-            var dobValue = viewData.customDob;
+            var dobDate = registrationValidationHelper.parseDobToDate(viewData.customDob);
             var phoneValue = viewData.customPhone;
 
-            if (dobValue && phoneValue && registrationValidationHelper.isValidDob(dobValue) && registrationValidationHelper.isValidPhone(phoneValue)) {
+            if (dobDate && phoneValue && registrationValidationHelper.isValidPhone(phoneValue)) {
                 var profile = viewData.authenticatedCustomer.getProfile();
-                var dobDate = registrationValidationHelper.parseDobToDate(dobValue);
 
                 Transaction.wrap(function () {
                     // Save Date of Birth as Date-type custom attribute
-                    if (dobDate) {
-                        profile.custom.dateOfBirth = dobDate;
-                    }
+                    profile.custom.dateOfBirth = dobDate;
                     // Save Phone Number as String-type custom attribute
                     profile.custom.phoneNumber = phoneValue;
                     // Also populate standard profile phoneHome
@@ -120,6 +116,38 @@ server.append('SubmitRegistration', function (req, res, next) {
             }
         }
     });
+
+    return next();
+});
+
+/**
+ * Account-Show : Append middleware to expose Date of Birth on the account dashboard.
+ * @name Base/Account-Show
+ * @function
+ * @memberof Account
+ * @param {Object} req - Request object
+ * @param {Object} res - Response object
+ * @param {Function} next - Next function
+ * @returns {void}
+ */
+server.append('Show', function (req, res, next) {
+    var viewData = res.getViewData();
+
+    if (viewData && viewData.account && viewData.account.profile && req.currentCustomer.raw && req.currentCustomer.raw.profile) {
+        var rawProfile = req.currentCustomer.raw.profile;
+        if (rawProfile.custom && rawProfile.custom.dateOfBirth) {
+            var dob = rawProfile.custom.dateOfBirth;
+            if (dob instanceof Date) {
+                var Calendar = require('dw/util/Calendar');
+                var StringUtils = require('dw/util/StringUtils');
+                var calendar = new Calendar(dob);
+                calendar.setTimeZone('UTC');
+                viewData.account.profile.dateOfBirth = StringUtils.formatCalendar(calendar, 'dd-MM-yyyy');
+            } else {
+                viewData.account.profile.dateOfBirth = dob.toString();
+            }
+        }
+    }
 
     return next();
 });

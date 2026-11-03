@@ -5,66 +5,61 @@
  * (Date of Birth and Phone Number).
  */
 
+var DOB_REGEX = /^(\d{2})-(\d{2})-(\d{4})$/;
+var PHONE_REGEX = /^\(\d{3}\) \d{3}-\d{4}$/;
+
 /**
- * Validates whether a given string is in DD-MM-YYYY or YYYY-MM-DD format
- * and represents a real calendar date.
- * Strictly rejects non-existent dates such as 31-02-2026, 29-02-2023, 31-04-2026, etc.,
- * as well as future dates.
+ * Converts a valid DD-MM-YYYY string to a JavaScript Date object (UTC-based).
+ * Validates format, calendar existence (including leap years), realistic year range (1900-2100),
+ * and rejects future dates.
  *
- * @param {string} dobString - Date of birth string in DD-MM-YYYY or YYYY-MM-DD format.
- * @returns {boolean} - True if valid calendar date, false otherwise.
+ * @param {string} dobString - Date of birth string in DD-MM-YYYY format.
+ * @returns {Date|null} - JavaScript Date instance or null if invalid.
  */
-function isValidDob(dobString) {
+function parseDobToDate(dobString) {
     if (!dobString || typeof dobString !== 'string') {
-        return false;
+        return null;
     }
 
-    var trimmed = dobString.trim();
-    var day;
-    var month;
-    var year;
-
-    var dmyMatch = trimmed.match(/^(\d{2})-(\d{2})-(\d{4})$/);
-    var ymdMatch = trimmed.match(/^(\d{4})-(\d{2})-(\d{2})$/);
-
-    if (dmyMatch) {
-        day = parseInt(dmyMatch[1], 10);
-        month = parseInt(dmyMatch[2], 10);
-        year = parseInt(dmyMatch[3], 10);
-    } else if (ymdMatch) {
-        year = parseInt(ymdMatch[1], 10);
-        month = parseInt(ymdMatch[2], 10);
-        day = parseInt(ymdMatch[3], 10);
-    } else {
-        return false;
+    var match = dobString.trim().match(DOB_REGEX);
+    if (!match) {
+        return null;
     }
 
-    // Realistic range for date of birth
+    var day = parseInt(match[1], 10);
+    var month = parseInt(match[2], 10);
+    var year = parseInt(match[3], 10);
+
     if (year < 1900 || year > 2100) {
-        return false;
+        return null;
     }
 
-    if (month < 1 || month > 12) {
-        return false;
-    }
-
-    // Check leap year
-    var isLeapYear = (year % 4 === 0 && (year % 100 !== 0 || year % 400 === 0));
-    var daysInMonth = [31, isLeapYear ? 29 : 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
-
-    if (day < 1 || day > daysInMonth[month - 1]) {
-        return false;
+    var date = new Date(Date.UTC(year, month - 1, day));
+    // Verify date didn't roll over (e.g. Feb 31 -> Mar 3 or invalid leap year)
+    if (date.getUTCFullYear() !== year || date.getUTCMonth() !== month - 1 || date.getUTCDate() !== day) {
+        return null;
     }
 
     // Must not be a future date (DOB cannot be after today)
-    var inputDate = new Date(Date.UTC(year, month - 1, day));
     var now = new Date();
-    var todayUtc = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
-    if (inputDate > todayUtc) {
-        return false;
+    var todayUtc = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate());
+    if (date.getTime() > todayUtc) {
+        return null;
     }
 
-    return true;
+    return date;
+}
+
+/**
+ * Validates whether a given string is in DD-MM-YYYY format
+ * and represents a real calendar date.
+ * Strictly rejects non-existent dates as well as future dates.
+ *
+ * @param {string} dobString - Date of birth string in DD-MM-YYYY format.
+ * @returns {boolean} - True if valid calendar date, false otherwise.
+ */
+function isValidDob(dobString) {
+    return parseDobToDate(dobString) !== null;
 }
 
 /**
@@ -75,43 +70,7 @@ function isValidDob(dobString) {
  * @returns {boolean} - True if format matches (999) 999-9999, false otherwise.
  */
 function isValidPhone(phoneString) {
-    if (!phoneString || typeof phoneString !== 'string') {
-        return false;
-    }
-
-    var regex = /^\(\d{3}\) \d{3}-\d{4}$/;
-    return regex.test(phoneString.trim());
-}
-
-/**
- * Converts a valid DD-MM-YYYY or YYYY-MM-DD string to a JavaScript Date object (UTC-based).
- *
- * @param {string} dobString - Date of birth string.
- * @returns {Date|null} - JavaScript Date instance or null if invalid.
- */
-function parseDobToDate(dobString) {
-    if (!isValidDob(dobString)) {
-        return null;
-    }
-
-    var parts = dobString.trim().split('-');
-    var day;
-    var month;
-    var year;
-
-    if (parts[0].length === 4) {
-        // YYYY-MM-DD
-        year = parseInt(parts[0], 10);
-        month = parseInt(parts[1], 10);
-        day = parseInt(parts[2], 10);
-    } else {
-        // DD-MM-YYYY
-        day = parseInt(parts[0], 10);
-        month = parseInt(parts[1], 10);
-        year = parseInt(parts[2], 10);
-    }
-
-    return new Date(Date.UTC(year, month - 1, day));
+    return !!(phoneString && typeof phoneString === 'string' && PHONE_REGEX.test(phoneString.trim()));
 }
 
 module.exports = {

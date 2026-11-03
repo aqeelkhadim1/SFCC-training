@@ -11,8 +11,7 @@ function isValidCalendarDate(str) {
     if (!str) {
         return false;
     }
-    var trimmed = str.trim();
-    var match = trimmed.match(/^(\d{2})-(\d{2})-(\d{4})$/);
+    var match = str.trim().match(/^(\d{2})-(\d{2})-(\d{4})$/);
     if (!match) {
         return false;
     }
@@ -21,19 +20,20 @@ function isValidCalendarDate(str) {
     var m = parseInt(match[2], 10);
     var y = parseInt(match[3], 10);
 
-    if (y < 1900 || y > 2100 || m < 1 || m > 12) {
-        return false;
-    }
-    var isLeap = (y % 4 === 0 && (y % 100 !== 0 || y % 400 === 0));
-    var daysInMonth = [31, isLeap ? 29 : 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
-    if (d < 1 || d > daysInMonth[m - 1]) {
+    if (y < 1900 || y > 2100) {
         return false;
     }
 
-    var inputDate = new Date(Date.UTC(y, m - 1, d));
+    var date = new Date(Date.UTC(y, m - 1, d));
+    // Verify date didn't roll over (e.g. Feb 31 -> Mar 3 or invalid leap year)
+    if (date.getUTCFullYear() !== y || date.getUTCMonth() !== m - 1 || date.getUTCDate() !== d) {
+        return false;
+    }
+
+    // Must not be a future date (DOB cannot be after today)
     var now = new Date();
-    var todayUtc = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
-    if (inputDate > todayUtc) {
+    var todayUtc = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate());
+    if (date.getTime() > todayUtc) {
         return false;
     }
 
