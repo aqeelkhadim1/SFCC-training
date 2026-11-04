@@ -8,7 +8,8 @@
             </div>
             <div class="col-sm-4 text-sm-right mt-3 mt-sm-0">
                 <!--- Create Post Placeholder (Day 2) --->
-                <button type="button" class="btn btn-primary" disabled title="Create Post feature will be available on Day 2">
+                <button type="button" class="btn btn-primary" disabled
+                    title="Create Post feature will be available on Day 2">
                     <i class="fa fa-plus" aria-hidden="true"></i> Create New Post
                 </button>
             </div>
@@ -35,7 +36,14 @@
         <isif condition="${pdict.posts && pdict.posts.length > 0}">
             <div class="card shadow-sm">
                 <div class="card-header bg-light d-flex justify-content-between align-items-center">
-                    <span class="font-weight-bold">Total Posts: ${pdict.posts.length}</span>
+                    <span class="font-weight-bold">
+                        <isif condition="${pdict.pagination}">
+                            Showing Page ${pdict.pagination.page} of ${pdict.pagination.totalPages} (Total:
+                            ${pdict.pagination.totalCount} posts)
+                        <iselse/>
+                            Total Posts: ${pdict.posts.length}
+                        </isif>
+                    </span>
                     <span class="badge badge-info">Day 1 Scope</span>
                 </div>
                 <div class="table-responsive">
@@ -59,15 +67,19 @@
                                     <td class="text-center align-middle">
                                         <div class="btn-group btn-group-sm" role="group" aria-label="Post Actions">
                                             <!--- View Action: tests getPostById(postId) via JSON route --->
-                                            <a href="${URLUtils.url('ExternalApi-GetPost', 'id', post.id)}" class="btn btn-outline-info" target="_blank" title="View Post Details (JSON)">
+                                            <a href="${URLUtils.url('ExternalApi-ViewPost', 'id', post.id)}"
+                                                class="btn btn-outline-info" target="_blank"
+                                                title="View Post Details (JSON)">
                                                 View
                                             </a>
                                             <!--- Edit Action Placeholder (Day 2) --->
-                                            <button type="button" class="btn btn-outline-secondary" disabled title="Edit Post (Available Day 2)">
+                                            <button type="button" class="btn btn-outline-secondary" disabled
+                                                title="Edit Post (Available Day 2)">
                                                 Edit
                                             </button>
                                             <!--- Delete Action Placeholder (Day 2) --->
-                                            <button type="button" class="btn btn-outline-danger" disabled title="Delete Post (Available Day 2)">
+                                            <button type="button" class="btn btn-outline-danger" disabled
+                                                title="Delete Post (Available Day 2)">
                                                 Delete
                                             </button>
                                         </div>
@@ -78,6 +90,38 @@
                     </table>
                 </div>
             </div>
+
+            <!--- Pagination Navigation Controls (SFRA PagingModel Style) --->
+            <isif condition="${pdict.pagination && pdict.pagination.totalPages > 1}">
+                <div class="d-flex justify-content-between align-items-center mt-3">
+                    <div>
+                        <isif condition="${pdict.pagination.hasPrevious}">
+                            <a href="${pdict.pagination.previousUrl || URLUtils.url('ExternalApi-Show', 'page', pdict.pagination.previousPage, 'limit', pdict
+                                     .pagination.limit)}"
+                                class="btn btn-outline-primary btn-sm">
+                                &laquo; Previous
+                            </a>
+                        <iselse/>
+                            <button class="btn btn-outline-secondary btn-sm" disabled>&laquo; Previous</button>
+                        </isif>
+                    </div>
+                    <span class="text-muted small">
+                        Page <strong>${pdict.pagination.page}</strong> of
+                        <strong>${pdict.pagination.totalPages}</strong>
+                    </span>
+                    <div>
+                        <isif condition="${pdict.pagination.hasNext}">
+                            <a href="${pdict.pagination.nextUrl || URLUtils.url('ExternalApi-Show', 'page', pdict.pagination.nextPage, 'limit', pdict
+                                     .pagination.limit)}"
+                                class="btn btn-outline-primary btn-sm">
+                                Next &raquo;
+                            </a>
+                        <iselse/>
+                            <button class="btn btn-outline-secondary btn-sm" disabled>Next &raquo;</button>
+                        </isif>
+                    </div>
+                </div>
+            </isif>
         </isif>
     </div>
 </isdecorate>

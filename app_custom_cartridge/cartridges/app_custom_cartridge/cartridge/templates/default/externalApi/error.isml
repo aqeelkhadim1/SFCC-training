@@ -1,0 +1,11 @@
+<isdecorate template="common/layout/page">
+    <div class="container my-5">
+        <div class="alert alert-danger" role="alert">
+            <h4 class="alert-heading">Service Unavailable</h4>
+            <p>${pdict.message || 'Unable to retrieve posts from external service. Please try again later.'}</p>
+            <hr>
+            <a href="${URLUtils.url('ExternalApi-Show')}" class="btn btn-outline-danger btn-sm">Try Again</a>
+        </div>
+    </div>
+</isdecorate>
+

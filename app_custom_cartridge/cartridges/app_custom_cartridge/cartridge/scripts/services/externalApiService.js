@@ -1,178 +1,289 @@
 'use strict';
 
-/**
- * Service Layer: externalApiService
- * Communicates with the JSONPlaceholder external REST API using SFCC's LocalServiceRegistry.
- *
- * Configured in Business Manager:
- * - Service ID: http.jsonplaceholder
- * - Profile: jsonPlaceholderProfile
- * - Credential: jsonPlaceholderCredential
- */
-
 var LocalServiceRegistry = require('dw/svc/LocalServiceRegistry');
-var Logger = require('dw/system/Logger').getLogger('jsonPlaceholder', 'externalApiService');
+var Logger = require('dw/system/Logger');
+
+var SERVICE_ID = 'jsonplaceholder';
+
+var logger = Logger.getLogger('externalApi', 'service');
 
 /**
- * Creates and initializes the HTTP Service definition via LocalServiceRegistry.
- * Handles request configuration (method, headers, dynamic endpoint, payload)
- * and response parsing (JSON parsing, HTTP status).
+ * Creates the external API service.
  */
-var jsonPlaceholderService = LocalServiceRegistry.createService('http.jsonplaceholder', {
-    /**
-     * Prepares the HTTP request before sending.
-     * @param {dw.svc.HTTPService} svc - The service instance provided by SFCC.
-     * @param {Object} params - Parameters passed into svc.call(params).
-     * @param {string} params.method - HTTP method (GET, POST, PUT, DELETE).
-     * @param {string} params.endpoint - Relative URL path (e.g. '/posts' or '/posts/1').
-     * @param {Object} [params.payload] - Optional request body object for POST/PUT.
-     * @returns {string|null} Serialized JSON body or null for GET/DELETE requests.
-     */
-    createRequest: function (svc, params) {
-        var requestMethod = (params && params.method) ? params.method.toUpperCase() : 'GET';
-        svc.setRequestMethod(requestMethod);
-        svc.addHeader('Content-Type', 'application/json');
-        svc.addHeader('Accept', 'application/json');
+var jsonPlaceholderService = LocalServiceRegistry.createService(
+    SERVICE_ID,
+    {
+        /**
+         * Prepares the HTTP request.
+         *
+         * @param {Object} svc - Service instance
+         * @param {Object} params - Request parameters
+         * @returns {string|null} Serialized request body
+         */
+        createRequest: function (svc, params) {
+            var baseUrl = svc.configuration.credential.URL;
 
-        // Dynamically append the endpoint to the credential base URL
-        var baseUrl = svc.configuration.credential.URL;
-        if (baseUrl.charAt(baseUrl.length - 1) === '/') {
-            baseUrl = baseUrl.substring(0, baseUrl.length - 1);
-        }
-
-        var endpoint = (params && params.endpoint) ? params.endpoint : '/posts';
-        if (endpoint.charAt(0) !== '/') {
-            endpoint = '/' + endpoint;
-        }
-
-        svc.setURL(baseUrl + endpoint);
-
-        // Serialize payload if present (for Day 2 POST/PUT operations)
-        if (params && params.payload) {
-            return JSON.stringify(params.payload);
-        }
-
-        return null;
-    },
-
-    /**
-     * Parses the HTTP response returned by the external API.
-     * Safely parses JSON and extracts status information.
-     * @param {dw.svc.HTTPService} svc - The service instance.
-     * @param {dw.net.HTTPClient} httpClient - The client with response text & status.
-     * @returns {Object} Structured response object containing status and parsed data.
-     */
-    parseResponse: function (svc, httpClient) {
-        var parsedData = null;
-        var rawText = httpClient.text;
-
-        if (rawText) {
-            try {
-                parsedData = JSON.parse(rawText);
-            } catch (e) {
-                Logger.warn('Response from {0} could not be parsed as JSON: {1}', svc.getURL(), rawText);
-                parsedData = rawText;
+            if (!baseUrl) {
+                throw new Error('External API base URL is not configured.');
             }
+
+            baseUrl = String(baseUrl).replace(/\/+$/, '');
+
+            var path = params.path || '';
+
+            if (path && path.charAt(0) !== '/') {
+                path = '/' + path;
+            }
+
+            svc.setURL(baseUrl + path);
+            svc.setRequestMethod(params.method || 'GET');
+
+            svc.addHeader('Accept', 'application/json');
+
+            if (params.payload !== null &&
+                params.payload !== undefined) {
+                svc.addHeader(
+                    'Content-Type',
+                    'application/json; charset=UTF-8'
+                );
+
+                return JSON.stringify(params.payload);
+            }
+
+            return null;
+        },
+
+        /**
+         * Parses the HTTP response.
+         *
+         * @param {Object} svc - Service instance
+         * @param {Object} client - HTTP client
+         * @returns {Object} Parsed response
+         */
+        parseResponse: function (svc, client) {
+            var statusCode = client.getStatusCode();
+            var responseText = client.getText();
+            var parsedData = null;
+
+            if (responseText) {
+                try {
+                    parsedData = JSON.parse(responseText);
+                } catch (e) {
+                    logger.error(
+                        'External API returned invalid JSON. Status: {0}',
+                        statusCode
+                    );
+
+                    return {
+                        statusCode: statusCode,
+                        data: null,
+                        totalCount: null,
+                        error: 'INVALID_JSON_RESPONSE'
+                    };
+                }
+            }
+
+            var totalCountHeader = client.getResponseHeader(
+                'X-Total-Count'
+            );
+
+            var totalCount = totalCountHeader
+                ? parseInt(totalCountHeader, 10)
+                : null;
+
+            if (!isFinite(totalCount) || totalCount < 0) {
+                totalCount = null;
+            }
+
+            return {
+                statusCode: statusCode,
+                data: parsedData,
+                totalCount: totalCount
+            };
+        },
+
+        /**
+         * Mock response for service testing.
+         *
+         * @returns {Object} Mock HTTP response
+         */
+        mockCall: function () {
+            return {
+                statusCode: 200,
+                statusMessage: 'Success (Mock)',
+                text: JSON.stringify([
+                    {
+                        id: 1,
+                        userId: 1,
+                        title: 'Mock Post',
+                        body: 'Mock Body'
+                    }
+                ])
+            };
+        },
+
+        /**
+         * Prevents request and response details from being
+         * written to service logs.
+         *
+         * @param {string} msg - Log message
+         * @returns {string} Filtered message
+         */
+        filterLogMessage: function (msg) {
+            return '[External API request/response details omitted]';
+        }
+    }
+);
+
+/**
+ * Executes an external API request.
+ *
+ * @param {Object} params - Request options
+ * @returns {Object} Normalized service result
+ */
+function callAPI(params) {
+    var result;
+
+    try {
+        result = jsonPlaceholderService.call(params);
+    } catch (e) {
+        logger.error(
+            'External API service execution failed: {0}',
+            e.message
+        );
+
+        return {
+            ok: false,
+            statusCode: 502,
+            error: 'SERVICE_UNAVAILABLE'
+        };
+    }
+
+    if (!result || !result.isOk()) {
+        var statusCode = 502;
+
+        if (result) {
+            var serviceObject = result.getObject();
+
+            if (serviceObject && serviceObject.statusCode) {
+                statusCode = serviceObject.statusCode;
+            }
+
+            logger.error(
+                'External API call failed. Status: {0}, Error: {1}',
+                result.getStatus(),
+                result.getErrorMessage()
+            );
         }
 
         return {
-            statusCode: httpClient.statusCode,
-            statusMessage: httpClient.statusMessage,
-            data: parsedData
+            ok: false,
+            statusCode: statusCode,
+            error: 'EXTERNAL_API_COMMUNICATION_FAILED'
         };
-    },
-
-    /**
-     * Filters sensitive data from logs (if any).
-     * @param {string} msg - The log message.
-     * @returns {string} Filtered message.
-     */
-    filterLogMessage: function (msg) {
-        return msg;
     }
-});
 
-/**
- * Generic internal caller that executes the service call with comprehensive error handling.
- * @param {Object} requestParams - Parameters for createRequest ({ method, endpoint, payload }).
- * @returns {Object} Standardized result object { success: boolean, data?: any, statusCode: number, error?: string }.
- */
-function executeServiceCall(requestParams) {
-    var result = {
-        success: false,
-        statusCode: 500,
-        data: null,
-        error: null
+    var response = result.getObject();
+
+    if (!response ||
+        typeof response.statusCode !== 'number' ||
+        response.statusCode < 200 ||
+        response.statusCode >= 300) {
+        return {
+            ok: false,
+            statusCode: response && response.statusCode
+                ? response.statusCode
+                : 502,
+            error: 'EXTERNAL_API_ERROR_STATUS'
+        };
+    }
+
+    return {
+        ok: true,
+        statusCode: response.statusCode,
+        data: response.data,
+        totalCount: response.totalCount
     };
-
-    try {
-        var serviceResult = jsonPlaceholderService.call(requestParams);
-
-        if (serviceResult.isOk() && serviceResult.object) {
-            result.success = true;
-            result.statusCode = serviceResult.object.statusCode;
-            result.data = serviceResult.object.data;
-        } else {
-            // Service call failed, timed out, or returned 4xx/5xx
-            result.statusCode = serviceResult.error || 500;
-            result.error = serviceResult.errorMessage || 'External service call failed';
-
-            Logger.error('Service call to {0} failed. Status: {1}, ErrorMessage: {2}',
-                requestParams.endpoint,
-                serviceResult.status,
-                serviceResult.errorMessage
-            );
-        }
-    } catch (e) {
-        Logger.error('Exception during service call to {0}: {1} (Line: {2})',
-            requestParams.endpoint,
-            e.message,
-            e.lineNumber
-        );
-        result.error = e.message;
-    }
-
-    return result;
 }
 
 /**
- * Day 1 Method 1: Retrieve all posts.
- * GET /posts
- * @returns {Object} Service response with array of posts.
+ * Retrieves paginated posts.
+ *
+ * @param {number} page - One-based page number
+ * @param {number} limit - Records per page
+ * @returns {Object} Service result
  */
-function getPosts() {
-    return executeServiceCall({
-        method: 'GET',
-        endpoint: '/posts'
+function getPosts(page, limit) {
+    var queryPath = '/posts?_page=' +
+        encodeURIComponent(page) +
+        '&_limit=' +
+        encodeURIComponent(limit);
+
+    return callAPI({
+        path: queryPath,
+        method: 'GET'
     });
 }
 
 /**
- * Day 1 Method 2: Retrieve an individual post by ID.
- * GET /posts/{id}
- * @param {string|number} postId - Numeric ID of the post.
- * @returns {Object} Service response with post object.
+ * Retrieves a single post.
+ *
+ * @param {number} postId - Post ID
+ * @returns {Object} Service result
  */
 function getPostById(postId) {
-    var parsedId = parseInt(postId, 10);
-    if (!postId || Number.isNaN(parsedId) || parsedId <= 0) {
-        return {
-            success: false,
-            statusCode: 400,
-            data: null,
-            error: 'Invalid or missing Post ID.'
-        };
-    }
+    return callAPI({
+        path: '/posts/' + encodeURIComponent(postId),
+        method: 'GET'
+    });
+}
 
-    return executeServiceCall({
-        method: 'GET',
-        endpoint: '/posts/' + parsedId
+/**
+ * Creates a post.
+ *
+ * @param {Object} payload - Post data
+ * @returns {Object} Service result
+ */
+function createPost(payload) {
+    return callAPI({
+        path: '/posts',
+        method: 'POST',
+        payload: payload
+    });
+}
+
+/**
+ * Updates a post.
+ *
+ * @param {number} postId - Post ID
+ * @param {Object} payload - Updated post data
+ * @returns {Object} Service result
+ */
+function updatePost(postId, payload) {
+    return callAPI({
+        path: '/posts/' + encodeURIComponent(postId),
+        method: 'PUT',
+        payload: payload
+    });
+}
+
+/**
+ * Deletes a post.
+ *
+ * @param {number} postId - Post ID
+ * @returns {Object} Service result
+ */
+function deletePost(postId) {
+    return callAPI({
+        path: '/posts/' + encodeURIComponent(postId),
+        method: 'DELETE'
     });
 }
 
 module.exports = {
     getPosts: getPosts,
     getPostById: getPostById,
-    // Expose generic caller so Day 2 operations (createPost, updatePost, deletePost) can be easily plugged in
-    executeServiceCall: executeServiceCall
+    createPost: createPost,
+    updatePost: updatePost,
+    deletePost: deletePost
 };
