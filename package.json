@@ -1,0 +1,12 @@
+{
+  "name": "zeeshan-001",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Root commands for the SFCC storefront and custom cartridges",
+  "scripts": {
+    "postinstall": "npm run install:projects",
+    "install:projects": "npm --prefix storefront-reference-architecture-master install && npm --prefix app_custom_cartridge install",
+    "build": "npm --prefix storefront-reference-architecture-master run build && npm --prefix app_custom_cartridge run build",
+    "watch": "node app_custom_cartridge/scripts/watch.js"
+  }
+}

@@ -1,7 +1,7 @@
 'use strict';
 
 var path = require('path');
-var baseModules = path.resolve(__dirname, '../storefront-reference-architecture-master/node_modules');
+var baseModules = path.resolve(__dirname, '../../../storefront-reference-architecture-master/node_modules');
 var localModules = path.resolve(__dirname, 'node_modules');
 
 function resolveModule(moduleName) {
