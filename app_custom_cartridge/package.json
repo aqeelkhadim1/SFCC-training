@@ -11,7 +11,11 @@
     "compile:js": "node ../storefront-reference-architecture-master/node_modules/sgmf-scripts/index.js --compile js",
     "compile:scss": "node ../storefront-reference-architecture-master/node_modules/sgmf-scripts/index.js --compile css",
     "build": "npm run compile:js && npm run compile:scss",
-    "watch": "node ../storefront-reference-architecture-master/node_modules/sgmf-scripts/index.js --watch"
+    "watch": "node ../storefront-reference-architecture-master/node_modules/sgmf-scripts/index.js --watch",
+    "compile:form:js": "node ../storefront-reference-architecture-master/node_modules/sgmf-scripts/index.js --compile js --cartridgeName form_custom_cartridge",
+    "compile:form:scss": "node ../storefront-reference-architecture-master/node_modules/sgmf-scripts/index.js --compile css --cartridgeName form_custom_cartridge",
+    "build:form": "npm run compile:form:js && npm run compile:form:scss",
+    "build:all": "npm run build && npm run build:form"
   },
   "devDependencies": {
     "@babel/core": "^7.6.3",
