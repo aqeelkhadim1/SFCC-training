@@ -9,7 +9,9 @@
     "upload": "sgmf-scripts --upload -- ",
     "uploadCartridge": "sgmf-scripts --uploadCartridge mycartridge",
     "compile:js": "sgmf-scripts --compile js",
-    "compile:scss": "sgmf-scripts --compile css"
+    "compile:scss": "sgmf-scripts --compile css",
+    "build": "npm run compile:js && npm run compile:scss",
+    "watch": "sgmf-scripts --watch"
   },
   "devDependencies": {
     "autoprefixer": "^10.4.16",
