@@ -5,14 +5,14 @@
   "main": "index.js",
   "packageName": "form_custom_cartridge",
   "paths": {
-    "base": "../storefront-reference-architecture-master/cartridges/app_storefront_base"
+    "base": "../../../storefront-reference-architecture-master/cartridges/app_storefront_base"
   },
   "scripts": {
-    "compile:js": "node ../storefront-reference-architecture-master/node_modules/sgmf-scripts/index.js --compile js",
-    "compile:scss": "node ../storefront-reference-architecture-master/node_modules/sgmf-scripts/index.js --compile css",
+    "compile:js": "node ../../../storefront-reference-architecture-master/node_modules/sgmf-scripts/index.js --compile js",
+    "compile:scss": "node ../../../storefront-reference-architecture-master/node_modules/sgmf-scripts/index.js --compile css",
     "build": "npm run compile:js && npm run compile:scss",
-    "watch": "node ../storefront-reference-architecture-master/node_modules/sgmf-scripts/index.js --watch",
-    "uploadCartridge": "node ../storefront-reference-architecture-master/node_modules/sgmf-scripts/index.js --uploadCartridge form_custom_cartridge"
+    "watch": "node ../../../storefront-reference-architecture-master/node_modules/sgmf-scripts/index.js --watch",
+    "uploadCartridge": "node ../../../storefront-reference-architecture-master/node_modules/sgmf-scripts/index.js --uploadCartridge form_custom_cartridge"
   },
   "devDependencies": {
     "@babel/core": "^7.6.3",
