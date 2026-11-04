@@ -2,11 +2,13 @@
 
 /**
  * externalApiHelper.js
- * External REST API ke liye backend validation, sanitization aur server-side pagination helper.
+ * External REST API ke liye validation aur SFCC dw.web.PagingModel pagination helper.
  */
 
+var PagingModel = require('dw/web/PagingModel');
+
 /**
- * Post ke form payload ko sanitize aur validate karta hai (POST aur PUT requests ke liye).
+ * Post ke form payload ko sanitize aur validate karta hai (POST & PUT).
  * @param {Object} payload - { userId, title, body }
  * @returns {Object} { isValid, errors, data }
  */
@@ -17,19 +19,19 @@ function validatePostPayload(payload) {
     var body = (p.body || p.description) ? String(p.body || p.description).trim() : '';
     var errors = {};
 
-    // User ID validation: Positive integer hona zaroori hai
+    // User ID: Positive integer check
     if (!userId || userId <= 0) {
         errors.userId = 'Valid positive User ID zaroori hai (e.g. 1, 2, 3).';
     }
 
-    // Title validation: Khali na ho aur 200 characters ki limit check
+    // Title: Non-empty aur 200 chars limit
     if (!title) {
         errors.title = 'Post Title zaroori hai.';
     } else if (title.length > 200) {
         errors.title = 'Title 200 characters se zyada nahi ho sakta.';
     }
 
-    // Description/Body validation: Khali na ho
+    // Description/Body: Non-empty check
     if (!body) {
         errors.body = 'Post Description zaroori hai.';
     }
@@ -43,8 +45,8 @@ function validatePostPayload(payload) {
 }
 
 /**
- * Post ID ko validate karta hai API calls se pehle (GET, PUT, DELETE).
- * @param {string|number} postId - URL parameter se aane wali ID
+ * Post ID validate karna API calls se pehle (GET, PUT, DELETE).
+ * @param {string|number} postId
  * @returns {Object} { isValid, id, error }
  */
 function validatePostId(postId) {
@@ -58,19 +60,29 @@ function validatePostId(postId) {
 }
 
 /**
- * Server-side pagination state aur boundary controls calculate karta hai.
+ * SFCC native dw.web.PagingModel use karke server-side pagination state calculate karna.
+ * @param {Array} elements - API se mangwaye gaye posts
  * @param {number|string} page - Current requested page
  * @param {number|string} limit - Per page records
- * @param {number|string} totalRecords - Total API records count
- * @returns {Object} Pagination metadata
+ * @param {number|string} totalRecords - API total records
+ * @returns {Object} Pagination metadata with SFCC PagingModel
  */
-function calculatePagination(page, limit, totalRecords) {
+function calculatePagination(elements, page, limit, totalRecords) {
     var pageSize = parseInt(limit, 10) || 10;
     var total = parseInt(totalRecords, 10) || 100;
+    var currentPage = Math.max(1, parseInt(page, 10) || 1);
+    var startIndex = (currentPage - 1) * pageSize;
+
+    // SFCC native PagingModel instance initialize karna
+    var paging = new PagingModel(elements || [], total);
+    paging.setStart(startIndex);
+    paging.setPageSize(pageSize);
+
     var totalPages = Math.max(1, Math.ceil(total / pageSize));
-    var currentPage = Math.min(Math.max(1, parseInt(page, 10) || 1), totalPages);
+    currentPage = Math.min(currentPage, totalPages);
 
     return {
+        pagingModel: paging,
         page: currentPage,
         pageSize: pageSize,
         totalRecords: total,
