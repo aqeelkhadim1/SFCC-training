@@ -7,6 +7,7 @@
  */
 
 var PagingModel = require('dw/web/PagingModel');
+var ArrayList = require('dw/util/ArrayList');
 var URLUtils = require('dw/web/URLUtils');
 var externalApiService = require('*/cartridge/scripts/services/externalApiService');
 
@@ -76,10 +77,28 @@ function calculatePagination(elements, page, limit, totalRecords) {
     var currentPage = Math.max(1, parseInt(page, 10) || 1);
     var startIndex = (currentPage - 1) * pageSize;
 
-    // SFCC native PagingModel instance initialize karna
-    var paging = new PagingModel(elements || [], total);
-    paging.setStart(startIndex);
-    paging.setPageSize(pageSize);
+    // SFCC dw.web.PagingModel Java Iterator expect karta hai (Native JS Array nahi)
+    var list = new ArrayList();
+    if (elements && elements.length) {
+        for (var i = 0; i < elements.length; i++) {
+            list.add(elements[i]);
+        }
+    }
+
+    var paging = null;
+    try {
+        paging = new PagingModel(list.iterator(), total);
+        paging.setStart(startIndex);
+        paging.setPageSize(pageSize);
+    } catch (e) {
+        try {
+            paging = new PagingModel(list, total);
+            paging.setStart(startIndex);
+            paging.setPageSize(pageSize);
+        } catch (err) {
+            // Safe fallback
+        }
+    }
 
     var totalPages = Math.max(1, Math.ceil(total / pageSize));
     currentPage = Math.min(currentPage, totalPages);
