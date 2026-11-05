@@ -51,7 +51,8 @@ server.get('ViewPost', function (req, res, next) {
 server.get('CreatePost', function (req, res, next) {
     res.render('externalApi/createPost', {
         actionUrl: URLUtils.url('ExternalApi-SavePost').toString(),
-        post: {}
+        post: {},
+        errors: {}
     });
     next();
 });
