@@ -1,0 +1,176 @@
+<isdecorate template="common/layout/page">
+    <isscript>
+        var assets = require('*/cartridge/scripts/assets.js');
+        assets.addJs('/js/externalApi.js');
+        assets.addCss('/css/externalApi.css');
+    </isscript>
+
+    <div class="container my-4 external-api-container">
+        <!--- Header aur Top Controls --->
+        <div class="row align-items-center mb-4">
+            <div class="col-md-7">
+                <h1 class="h2 text-primary font-weight-bold mb-1">External API Posts</h1>
+                <p class="text-muted mb-0">Salesforce Commerce Cloud Service Framework (LocalServiceRegistry) CRUD & Server Pagination</p>
+            </div>
+            <div class="col-md-5 text-md-right mt-3 mt-md-0">
+                <a href="${URLUtils.url('ExternalApi-CreatePost')}" class="btn btn-primary shadow-sm">
+                    <i class="fa fa-plus-circle mr-1" aria-hidden="true"></i> Create New Post
+                </a>
+            </div>
+        </div>
+
+        <!--- Flash Message Container (Success / Error alerts) --->
+        <div id="api-alert-container">
+            <isif condition="${pdict.error}">
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <strong>Error:</strong> ${pdict.error}
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+            </isif>
+        </div>
+
+        <!--- Posts Table Card --->
+        <div class="card shadow-sm border-0 mb-4">
+            <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                <h6 class="m-0 font-weight-bold text-dark">
+                    Records List (Page ${pdict.pagination.page} of ${pdict.pagination.totalPages})
+                </h6>
+                <span class="badge badge-primary px-3 py-2">
+                    Total: ${pdict.pagination.totalRecords} Posts
+                </span>
+            </div>
+            <div class="card-body p-0">
+                <isif condition="${pdict.posts && pdict.posts.length > 0}">
+                    <div class="table-responsive">
+                        <table class="table table-hover table-striped mb-0 text-left" id="posts-table">
+                            <thead class="thead-light">
+                                <tr>
+                                    <th scope="col" style="width: 8%;">ID</th>
+                                    <th scope="col" style="width: 10%;">User ID</th>
+                                    <th scope="col" style="width: 27%;">Title</th>
+                                    <th scope="col" style="width: 35%;">Description</th>
+                                    <th scope="col" class="text-center" style="width: 20%;">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <isloop items="${pdict.posts}" var="post">
+                                    <tr id="post-row-${post.id}">
+                                        <td class="align-middle font-weight-bold text-muted">${post.id}</td>
+                                        <td class="align-middle">
+                                            <span class="badge badge-light border text-secondary px-2 py-1">User #${post.userId}</span>
+                                        </td>
+                                        <td class="align-middle font-weight-bold text-dark post-title-cell">
+                                            ${post.title}
+                                        </td>
+                                        <td class="align-middle text-muted post-body-cell">
+                                            ${post.body}
+                                        </td>
+                                        <td class="align-middle text-center">
+                                            <div class="btn-group btn-group-sm" role="group" aria-label="Post Actions">
+                                                <a href="${URLUtils.url('ExternalApi-ViewPost', 'id', post.id)}"
+                                                   class="btn btn-outline-info"
+                                                   title="View Post Details">
+                                                    View
+                                                </a>
+                                                <a href="${URLUtils.url('ExternalApi-EditPost', 'id', post.id)}"
+                                                   class="btn btn-outline-warning"
+                                                   title="Edit Post">
+                                                    Edit
+                                                </a>
+                                                <button type="button"
+                                                        class="btn btn-outline-danger btn-delete-post"
+                                                        data-id="${post.id}"
+                                                        data-title="${post.title}"
+                                                        data-url="${URLUtils.url('ExternalApi-DeletePost', 'id', post.id)}"
+                                                        title="Delete Post">
+                                                    Delete
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </isloop>
+                            </tbody>
+                        </table>
+                    </div>
+                <iselse>
+                    <div class="text-center py-5">
+                        <i class="fa fa-folder-open-o fa-3x text-muted mb-3" aria-hidden="true"></i>
+                        <h5 class="text-muted">No records available</h5>
+                        <p class="text-secondary small">External API par koi posts nahi milay ya service unavailable hai.</p>
+                    </div>
+                </isif>
+            </div>
+
+            <!--- Server-side Pagination Bar --->
+            <isif condition="${pdict.pagination && pdict.pagination.totalPages > 1}">
+                <div class="card-footer bg-white py-3 d-flex flex-column flex-sm-row justify-content-between align-items-center">
+                    <div class="text-muted small mb-2 mb-sm-0">
+                        Showing Page <strong>${pdict.pagination.page}</strong> of <strong>${pdict.pagination.totalPages}</strong> (10 records per page)
+                    </div>
+                    <nav aria-label="Posts Navigation">
+                        <ul class="pagination pagination-sm m-0">
+                            <!--- Previous Button --->
+                            <li class="page-item ${!pdict.pagination.hasPrev ? 'disabled' : ''}">
+                                <a class="page-link"
+                                   href="${pdict.pagination.hasPrev ? URLUtils.url('ExternalApi-Show', 'page', pdict.pagination.prevPage) : '#'}"
+                                   tabindex="${!pdict.pagination.hasPrev ? '-1' : '0'}"
+                                   aria-disabled="${!pdict.pagination.hasPrev}">
+                                    &laquo; Previous
+                                </a>
+                            </li>
+
+                            <li class="page-item active" aria-current="page">
+                                <span class="page-link">
+                                    ${pdict.pagination.page}
+                                </span>
+                            </li>
+
+                            <!--- Next Button --->
+                            <li class="page-item ${!pdict.pagination.hasNext ? 'disabled' : ''}">
+                                <a class="page-link"
+                                   href="${pdict.pagination.hasNext ? URLUtils.url('ExternalApi-Show', 'page', pdict.pagination.nextPage) : '#'}"
+                                   tabindex="${!pdict.pagination.hasNext ? '-1' : '0'}"
+                                   aria-disabled="${!pdict.pagination.hasNext}">
+                                    Next &raquo;
+                                </a>
+                            </li>
+                        </ul>
+                    </nav>
+                </div>
+            </isif>
+        </div>
+    </div>
+
+    <!--- Modal for Delete Confirmation (Accidental Deletion Prevention) --->
+    <div class="modal fade" id="deleteConfirmModal" tabindex="-1" role="dialog" aria-labelledby="deleteModalTitle" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content shadow">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title font-weight-bold" id="deleteModalTitle">
+                        <i class="fa fa-exclamation-triangle mr-2" aria-hidden="true"></i> Confirm Delete Post
+                    </h5>
+                    <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <p class="mb-2">Are you sure you want to delete this post?</p>
+                    <div class="card bg-light p-3 border">
+                        <p class="mb-1"><strong>Post ID:</strong> <span id="modal-post-id" class="badge badge-secondary"></span></p>
+                        <p class="mb-0 text-muted"><strong>Title:</strong> <span id="modal-post-title" class="font-italic"></span></p>
+                    </div>
+                    <small class="text-danger mt-2 d-block">Note: Yeh action external API par DELETE request trigger karega.</small>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-danger" id="btn-confirm-delete">
+                        <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+                        Delete Permanently
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</isdecorate>

@@ -1,0 +1,94 @@
+<isdecorate template="common/layout/page">
+    <isscript>
+        var assets = require('*/cartridge/scripts/assets.js');
+        assets.addJs('/js/externalApi.js');
+        assets.addCss('/css/externalApi.css');
+    </isscript>
+
+    <div class="container my-5 external-api-container">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <!--- Breadcrumb / Top Navigation --->
+                <div class="mb-3">
+                    <a href="${URLUtils.url('ExternalApi-Show')}" class="text-decoration-none text-secondary">
+                        &larr; Back to Posts List
+                    </a>
+                </div>
+
+                <isif condition="${pdict.error}">
+                    <div class="alert alert-danger shadow-sm border-0" role="alert">
+                        <h5 class="alert-heading font-weight-bold mb-1">
+                            <i class="fa fa-exclamation-circle mr-2" aria-hidden="true"></i> Record Unavailable
+                        </h5>
+                        <p class="mb-3">${pdict.error}</p>
+                        <hr>
+                        <a href="${URLUtils.url('ExternalApi-Show')}" class="btn btn-outline-danger btn-sm">
+                            Return to Listing Page
+                        </a>
+                    </div>
+                </isif>
+
+                <isif condition="${pdict.post}">
+                    <!--- Post Details Card --->
+                    <div class="card shadow-sm border-0">
+                        <div class="card-header bg-primary text-white py-3 d-flex justify-content-between align-items-center">
+                            <h5 class="m-0 font-weight-bold">
+                                Post Details #${pdict.post.id}
+                            </h5>
+                            <span class="badge badge-light px-3 py-2 font-weight-bold">
+                                Author: User #${pdict.post.userId}
+                            </span>
+                        </div>
+                        <div class="card-body p-4">
+                            <!--- Title Section --->
+                            <div class="mb-4">
+                                <label class="text-uppercase text-muted font-weight-bold small tracking-wide">
+                                    Post Title
+                                </label>
+                                <h3 class="font-weight-bold text-dark mt-1">
+                                    ${pdict.post.title}
+                                </h3>
+                            </div>
+
+                            <hr>
+
+                            <!--- Description / Body Section --->
+                            <div class="mb-4">
+                                <label class="text-uppercase text-muted font-weight-bold small tracking-wide">
+                                    Description / Body
+                                </label>
+                                <p class="lead text-secondary mt-1 line-height-relaxed" style="white-space: pre-line;">
+                                    ${pdict.post.body}
+                                </p>
+                            </div>
+
+                            <hr>
+
+                            <!--- Metadata Info Box --->
+                            <div class="row text-muted small bg-light rounded p-3 mx-0 mb-4">
+                                <div class="col-sm-6 mb-2 mb-sm-0">
+                                    <strong>Source:</strong> JSONPlaceholder REST API
+                                </div>
+                                <div class="col-sm-6 text-sm-right">
+                                    <strong>Service:</strong> dw.svc.LocalServiceRegistry
+                                </div>
+                            </div>
+
+                            <!--- Actions --->
+                            <div class="d-flex justify-content-between align-items-center">
+                                <a href="${URLUtils.url('ExternalApi-Show')}" class="btn btn-outline-secondary">
+                                    &larr; Back to List
+                                </a>
+                                <div>
+                                    <a href="${URLUtils.url('ExternalApi-EditPost', 'id', pdict.post.id)}" class="btn btn-warning px-4 font-weight-bold shadow-sm">
+                                        <i class="fa fa-pencil mr-1" aria-hidden="true"></i> Edit Post
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </isif>
+            </div>
+        </div>
+    </div>
+</isdecorate>

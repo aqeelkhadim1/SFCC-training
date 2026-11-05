@@ -1,0 +1,109 @@
+<isdecorate template="common/layout/page">
+    <isscript>
+        var assets = require('*/cartridge/scripts/assets');
+        assets.addJs('/js/externalApi.js');
+        assets.addCss('/css/externalApi.css');
+    </isscript>
+
+    <div class="container my-5 external-api-container">
+        <div class="row justify-content-center">
+            <div class="col-lg-7 col-md-9">
+                <!--- Back Button Link --->
+                <div class="mb-3">
+                    <a href="${URLUtils.url('ExternalApi-Show')}" class="text-decoration-none text-secondary">
+                        &larr; Back to Posts List
+                    </a>
+                </div>
+
+                <!--- Create Form Card --->
+                <div class="card shadow-sm border-0">
+                    <div class="card-header bg-primary text-white py-3">
+                        <h4 class="m-0 font-weight-bold">
+                            <i class="fa fa-plus-circle mr-2" aria-hidden="true"></i> Create New Post
+                        </h4>
+                        <small class="text-light">External API (POST /posts) via SFCC Service Framework</small>
+                    </div>
+
+                    <div class="card-body p-4">
+                        <!--- Global Alert Message Box (AJAX / Service Response) --->
+                        <div id="form-alert-container">
+                            <isif condition="${pdict.errors && pdict.errors.api}">
+                                <div class="alert alert-danger" role="alert">
+                                    <isprint value="${pdict.errors.api}" />
+                                </div>
+                            </isif>
+                        </div>
+
+                        <form id="createPostForm" action="${pdict.actionUrl}" method="POST" novalidate>
+                            <!--- Field 1: User ID (Number, Required) --->
+                            <div class="form-group mb-3">
+                                <label for="userId" class="font-weight-bold text-dark">
+                                    User ID <span class="text-danger">*</span>
+                                </label>
+                                <input type="number"
+                                    class="form-control ${pdict.errors && pdict.errors.userId ? 'is-invalid' : ''}"
+                                    id="userId"
+                                    name="userId"
+                                    placeholder="Enter user numeric ID (e.g. 1)"
+                                    min="1"
+                                    step="1"
+                                    value="${pdict.post && pdict.post.userId ? pdict.post.userId : ''}"
+                                    required>
+                                <div class="invalid-feedback" id="userId-error">
+                                    ${pdict.errors && pdict.errors.userId ? pdict.errors.userId : 'Valid positive User ID zaroori hai.'}
+                                </div>
+                                <small class="form-text text-muted">Author user ki integer ID (e.g. 1 to 10).</small>
+                            </div>
+
+                            <!--- Field 2: Title (Text, Required) --->
+                            <div class="form-group mb-3">
+                                <label for="title" class="font-weight-bold text-dark">
+                                    Post Title <span class="text-danger">*</span>
+                                </label>
+                                <input type="text"
+                                    class="form-control ${pdict.errors && pdict.errors.title ? 'is-invalid' : ''}"
+                                    id="title"
+                                    name="title"
+                                    placeholder="Enter post title"
+                                    maxlength="200"
+                                    value="${pdict.post && pdict.post.title ? pdict.post.title : ''}"
+                                    required>
+                                <div class="invalid-feedback" id="title-error">
+                                    ${pdict.errors && pdict.errors.title ? pdict.errors.title : 'Post Title zaroori hai (max 200 characters).'}
+                                </div>
+                            </div>
+
+                            <!--- Field 3: Description / Body (Textarea, Required) --->
+                            <div class="form-group mb-4">
+                                <label for="body" class="font-weight-bold text-dark">
+                                    Description / Body <span class="text-danger">*</span>
+                                </label>
+                                <textarea
+                                    class="form-control ${pdict.errors && pdict.errors.body ? 'is-invalid' : ''}"
+                                    id="body"
+                                    name="body"
+                                    rows="5"
+                                    placeholder="Enter post description content..."
+                                    required>${pdict.post && pdict.post.body ? pdict.post.body : ''}</textarea>
+                                <div class="invalid-feedback" id="body-error">
+                                    ${pdict.errors && pdict.errors.body ? pdict.errors.body : 'Post Description content zaroori hai.'}
+                                </div>
+                            </div>
+
+                            <!--- Form Actions --->
+                            <div class="d-flex justify-content-between align-items-center pt-2 border-top">
+                                <a href="${URLUtils.url('ExternalApi-Show')}" class="btn btn-outline-secondary">
+                                    Cancel
+                                </a>
+                                <button type="submit" class="btn btn-primary px-4 font-weight-bold shadow-sm" id="btn-submit-post">
+                                    <span class="spinner-border spinner-border-sm d-none mr-1" role="status" aria-hidden="true"></span>
+                                    Create Post
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</isdecorate>
