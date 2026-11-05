@@ -2,13 +2,16 @@
 
 /**
  * externalApiHelper.js
- * External REST API ke liye validation aur SFCC dw.web.PagingModel pagination helper.
+ * External REST API ke liye Business Logic, Validation, Native PagingModel aur Service Orchestration.
+ * Flow: Controller -> Helper -> Service -> Helper -> Controller -> View
  */
 
 var PagingModel = require('dw/web/PagingModel');
+var URLUtils = require('dw/web/URLUtils');
+var externalApiService = require('*/cartridge/scripts/services/externalApiService');
 
 /**
- * Post ke form payload ko sanitize aur validate karta hai (POST & PUT).
+ * Form payload ko validate aur sanitize karna (POST & PUT ke liye).
  * @param {Object} payload - { userId, title, body }
  * @returns {Object} { isValid, errors, data }
  */
@@ -19,19 +22,19 @@ function validatePostPayload(payload) {
     var body = (p.body || p.description) ? String(p.body || p.description).trim() : '';
     var errors = {};
 
-    // User ID: Positive integer check
+    // 1. User ID check: Positive integer lazmi hai
     if (!userId || userId <= 0) {
         errors.userId = 'Valid positive User ID zaroori hai (e.g. 1, 2, 3).';
     }
 
-    // Title: Non-empty aur 200 chars limit
+    // 2. Title check: Khali na ho aur 200 characters limit
     if (!title) {
         errors.title = 'Post Title zaroori hai.';
     } else if (title.length > 200) {
         errors.title = 'Title 200 characters se zyada nahi ho sakta.';
     }
 
-    // Description/Body: Non-empty check
+    // 3. Description/Body check: Khali na ho
     if (!body) {
         errors.body = 'Post Description zaroori hai.';
     }
@@ -94,8 +97,111 @@ function calculatePagination(elements, page, limit, totalRecords) {
     };
 }
 
+/**
+ * 1. Paginated posts fetch karke PagingModel ke sath response ready karna (GET).
+ */
+function getPosts(page, limit) {
+    var requestedPage = parseInt(page, 10) || 1;
+    var requestedLimit = parseInt(limit, 10) || 10;
+
+    // Service call via externalApiService (Req Method 1: GET /posts)
+    var result = externalApiService.getPosts(requestedPage, requestedLimit);
+    var pagination = calculatePagination(result.data, requestedPage, requestedLimit, result.totalCount);
+
+    return {
+        success: result.success,
+        posts: result.data || [],
+        pagination: pagination,
+        error: result.success ? null : (result.error || 'Posts load nahi ho saki.')
+    };
+}
+
+/**
+ * 2. Specific Post ID se post fetch karna (GET).
+ */
+function getPostById(postId) {
+    var check = validatePostId(postId);
+    if (!check.isValid) {
+        return { success: false, post: null, error: check.error };
+    }
+
+    // Service call via externalApiService (Req Method 2: GET /posts/{id})
+    var result = externalApiService.getPostById(check.id);
+    return {
+        success: result.success,
+        post: result.data || null,
+        error: result.success ? null : (result.error || 'Post available nahi hai.')
+    };
+}
+
+/**
+ * 3. Nayi post validate karke create karna (POST).
+ */
+function createPost(formData) {
+    var validation = validatePostPayload(formData);
+    if (!validation.isValid) {
+        return { success: false, errors: validation.errors };
+    }
+
+    // Service call via externalApiService (Req Method 3: POST /posts)
+    var result = externalApiService.createPost(validation.data);
+    return {
+        success: result.success,
+        message: result.success ? 'Post successfully create ho gayi!' : (result.error || 'Post create nahi ho saki.'),
+        data: result.data,
+        redirectUrl: URLUtils.url('ExternalApi-Show').toString(),
+        error: result.success ? null : result.error
+    };
+}
+
+/**
+ * 4. Existing post validate karke update karna (PUT).
+ */
+function updatePost(postId, formData) {
+    var check = validatePostId(postId);
+    var validation = validatePostPayload(formData);
+
+    if (!check.isValid || !validation.isValid) {
+        var errors = validation.errors || {};
+        if (!check.isValid) { errors.id = check.error; }
+        return { success: false, errors: errors };
+    }
+
+    // Service call via externalApiService (Req Method 4: PUT /posts/{id})
+    var result = externalApiService.updatePost(check.id, validation.data);
+    return {
+        success: result.success,
+        message: result.success ? 'Post successfully update ho gayi!' : (result.error || 'Update request fail ho gayi.'),
+        data: result.data,
+        redirectUrl: URLUtils.url('ExternalApi-Show').toString(),
+        error: result.success ? null : result.error
+    };
+}
+
+/**
+ * 5. Post delete karna (DELETE).
+ */
+function deletePost(postId) {
+    var check = validatePostId(postId);
+    if (!check.isValid) {
+        return { success: false, error: check.error };
+    }
+
+    // Service call via externalApiService (Req Method 5: DELETE /posts/{id})
+    var result = externalApiService.deletePost(check.id);
+    return {
+        success: result.success,
+        message: result.success ? 'Post successfully delete ho gayi!' : (result.error || 'Delete request fail ho gayi.')
+    };
+}
+
 module.exports = {
     validatePostPayload: validatePostPayload,
     validatePostId: validatePostId,
-    calculatePagination: calculatePagination
+    calculatePagination: calculatePagination,
+    getPosts: getPosts,
+    getPostById: getPostById,
+    createPost: createPost,
+    updatePost: updatePost,
+    deletePost: deletePost
 };
