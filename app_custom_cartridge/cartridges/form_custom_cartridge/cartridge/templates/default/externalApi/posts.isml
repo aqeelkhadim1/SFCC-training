@@ -59,7 +59,7 @@
                                     <tr id="post-row-${post.id}">
                                         <td class="align-middle font-weight-bold text-muted">${post.id}</td>
                                         <td class="align-middle">
-                                            <span class="badge badge-light border text-secondary px-2 py-1">User #${post.userId}</span>
+                                            <span class="badge badge-light border text-secondary px-2 py-1">User ID: ${post.userId}</span>
                                         </td>
                                         <td class="align-middle font-weight-bold text-dark post-title-cell">
                                             ${post.title}
@@ -94,7 +94,7 @@
                             </tbody>
                         </table>
                     </div>
-                <iselse>
+                <iselse/>
                     <div class="text-center py-5">
                         <i class="fa fa-folder-open-o fa-3x text-muted mb-3" aria-hidden="true"></i>
                         <h5 class="text-muted">No records available</h5>
@@ -112,14 +112,17 @@
                     <nav aria-label="Posts Navigation">
                         <ul class="pagination pagination-sm m-0">
                             <!--- Previous Button --->
-                            <li class="page-item ${!pdict.pagination.hasPrev ? 'disabled' : ''}">
-                                <a class="page-link"
-                                   href="${pdict.pagination.hasPrev ? URLUtils.url('ExternalApi-Show', 'page', pdict.pagination.prevPage) : '#'}"
-                                   tabindex="${!pdict.pagination.hasPrev ? '-1' : '0'}"
-                                   aria-disabled="${!pdict.pagination.hasPrev}">
-                                    &laquo; Previous
-                                </a>
-                            </li>
+                            <isif condition="${pdict.pagination.hasPrev}">
+                                <li class="page-item">
+                                    <a class="page-link" href="${URLUtils.url('ExternalApi-Show', 'page', pdict.pagination.prevPage)}">
+                                        &lt; Previous
+                                    </a>
+                                </li>
+                            <iselse/>
+                                <li class="page-item disabled">
+                                    <span class="page-link">&lt; Previous</span>
+                                </li>
+                            </isif>
 
                             <li class="page-item active" aria-current="page">
                                 <span class="page-link">
@@ -128,14 +131,17 @@
                             </li>
 
                             <!--- Next Button --->
-                            <li class="page-item ${!pdict.pagination.hasNext ? 'disabled' : ''}">
-                                <a class="page-link"
-                                   href="${pdict.pagination.hasNext ? URLUtils.url('ExternalApi-Show', 'page', pdict.pagination.nextPage) : '#'}"
-                                   tabindex="${!pdict.pagination.hasNext ? '-1' : '0'}"
-                                   aria-disabled="${!pdict.pagination.hasNext}">
-                                    Next &raquo;
-                                </a>
-                            </li>
+                            <isif condition="${pdict.pagination.hasNext}">
+                                <li class="page-item">
+                                    <a class="page-link" href="${URLUtils.url('ExternalApi-Show', 'page', pdict.pagination.nextPage)}">
+                                        Next &gt;
+                                    </a>
+                                </li>
+                            <iselse/>
+                                <li class="page-item disabled">
+                                    <span class="page-link">Next &gt;</span>
+                                </li>
+                            </isif>
                         </ul>
                     </nav>
                 </div>
