@@ -101,33 +101,60 @@
                 </isif>
             </div>
 
-            <!--- Load More Vertical Extension Section --->
-            <div class="card-footer bg-white py-3 text-center border-top" id="load-more-section">
-                <div class="mb-3 text-muted small">
-                    <span id="posts-count-display">
-                        ${Resource.msgf('pagination.showing.count', 'externalApi', null, (pdict.posts ? pdict.posts.length : 0), pdict.pagination.totalRecords)}
-                    </span>
+            <!--- Server-side Numbered Pagination Bar + View More Redirect --->
+            <isif condition="${pdict.pagination && pdict.pagination.totalPages > 1}">
+                <div class="card-footer bg-white py-3 d-flex flex-column flex-md-row justify-content-between align-items-center">
+                    <div class="text-muted small mb-2 mb-md-0">
+                        ${Resource.msgf('pagination.showing', 'externalApi', null, pdict.pagination.page, pdict.pagination.totalPages)}
+                    </div>
+
+                    <!--- Center: View More Button that redirects to ExternalApi-ViewMore --->
+                    <div class="my-2 my-md-0">
+                        <a href="${URLUtils.url('ExternalApi-ViewMore')}" class="btn btn-outline-primary btn-sm font-weight-bold shadow-sm" title="${Resource.msg('button.switch.to.viewmore', 'externalApi', null)}">
+                            <i class="fa fa-arrow-circle-down mr-1" aria-hidden="true"></i> ${Resource.msg('button.view.more', 'externalApi', null)}
+                        </a>
+                    </div>
+
+                    <!--- Right: Numbered Pagination Controls --->
+                    <nav aria-label="Posts Navigation">
+                        <ul class="pagination pagination-sm m-0">
+                            <!--- Previous Button --->
+                            <isif condition="${pdict.pagination.hasPrev}">
+                                <li class="page-item">
+                                    <a class="page-link"
+                                        href="${URLUtils.url('ExternalApi-Show', 'page', pdict.pagination.prevPage)}">
+                                        ${Resource.msg('pagination.prev', 'externalApi', null)}
+                                    </a>
+                                </li>
+                            <iselse/>
+                                <li class="page-item disabled">
+                                    <span class="page-link">${Resource.msg('pagination.prev', 'externalApi', null)}</span>
+                                </li>
+                            </isif>
+
+                            <li class="page-item active" aria-current="page">
+                                <span class="page-link">
+                                    ${pdict.pagination.page}
+                                </span>
+                            </li>
+
+                            <!--- Next Button --->
+                            <isif condition="${pdict.pagination.hasNext}">
+                                <li class="page-item">
+                                    <a class="page-link"
+                                        href="${URLUtils.url('ExternalApi-Show', 'page', pdict.pagination.nextPage)}">
+                                        ${Resource.msg('pagination.next', 'externalApi', null)}
+                                    </a>
+                                </li>
+                            <iselse/>
+                                <li class="page-item disabled">
+                                    <span class="page-link">${Resource.msg('pagination.next', 'externalApi', null)}</span>
+                                </li>
+                            </isif>
+                        </ul>
+                    </nav>
                 </div>
-                <isif condition="${pdict.pagination && pdict.pagination.hasNext}">
-                    <button type="button" id="btn-load-more" class="btn btn-outline-primary px-4 py-2 font-weight-bold shadow-sm"
-                        data-url="${URLUtils.url('ExternalApi-GetPosts')}"
-                        data-view-url="${URLUtils.url('ExternalApi-ViewPost')}"
-                        data-edit-url="${URLUtils.url('ExternalApi-EditPost')}"
-                        data-delete-url="${URLUtils.url('ExternalApi-DeletePost')}"
-                        data-next-page="${pdict.pagination.nextPage}"
-                        data-total-pages="${pdict.pagination.totalPages}"
-                        data-view-label="${Resource.msg('button.action.view', 'externalApi', null)}"
-                        data-edit-label="${Resource.msg('button.action.edit', 'externalApi', null)}"
-                        data-delete-label="${Resource.msg('button.action.delete', 'externalApi', null)}">
-                        <span class="spinner-border spinner-border-sm d-none mr-2" role="status" aria-hidden="true"></span>
-                        <i class="fa fa-arrow-circle-down mr-1" aria-hidden="true"></i>
-                        <span class="btn-text">${Resource.msg('button.load.more', 'externalApi', null)}</span>
-                    </button>
-                </isif>
-                <div id="no-more-posts" class="text-muted small mt-2 ${pdict.pagination && pdict.pagination.hasNext ? 'd-none' : ''}">
-                    <i class="fa fa-check-circle text-success mr-1" aria-hidden="true"></i> ${Resource.msg('msg.all.posts.loaded', 'externalApi', null)}
-                </div>
-            </div>
+            </isif>
         </div>
     </div>
 
