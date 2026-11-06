@@ -9,8 +9,9 @@
         <!--- Header aur Top Controls --->
         <div class="row align-items-center mb-4">
             <div class="col-md-7">
-                <h1 class="h2 text-primary font-weight-bold mb-1">External API Posts</h1>
-                <p class="text-muted mb-0">Salesforce Commerce Cloud Service Framework (LocalServiceRegistry) CRUD & Server Pagination</p>
+                <h1 class="h2 text-primary font-weight-bold mb-1">External API Posts - Syed Ali</h1>
+                <p class="text-muted mb-0">Salesforce Commerce Cloud Service Framework (LocalServiceRegistry) CRUD &
+                    Server Pagination</p>
             </div>
             <div class="col-md-5 text-md-right mt-3 mt-md-0">
                 <a href="${URLUtils.url('ExternalApi-CreatePost')}" class="btn btn-primary shadow-sm">
@@ -59,7 +60,8 @@
                                     <tr id="post-row-${post.id}">
                                         <td class="align-middle font-weight-bold text-muted">${post.id}</td>
                                         <td class="align-middle">
-                                            <span class="badge badge-light border text-secondary px-2 py-1">User ID: ${post.userId}</span>
+                                            <span class="badge badge-light border text-secondary px-2 py-1">User ID:
+                                                ${post.userId}</span>
                                         </td>
                                         <td class="align-middle font-weight-bold text-dark post-title-cell">
                                             ${post.title}
@@ -70,21 +72,17 @@
                                         <td class="align-middle text-center">
                                             <div class="btn-group btn-group-sm" role="group" aria-label="Post Actions">
                                                 <a href="${URLUtils.url('ExternalApi-ViewPost', 'id', post.id)}"
-                                                   class="btn btn-outline-info"
-                                                   title="View Post Details">
+                                                    class="btn btn-outline-info" title="View Post Details">
                                                     View
                                                 </a>
                                                 <a href="${URLUtils.url('ExternalApi-EditPost', 'id', post.id)}"
-                                                   class="btn btn-outline-warning"
-                                                   title="Edit Post">
+                                                    class="btn btn-outline-warning" title="Edit Post">
                                                     Edit
                                                 </a>
-                                                <button type="button"
-                                                        class="btn btn-outline-danger btn-delete-post"
-                                                        data-id="${post.id}"
-                                                        data-title="${post.title}"
-                                                        data-url="${URLUtils.url('ExternalApi-DeletePost', 'id', post.id)}"
-                                                        title="Delete Post">
+                                                <button type="button" class="btn btn-outline-danger btn-delete-post"
+                                                    data-id="${post.id}" data-title="${post.title}"
+                                                    data-url="${URLUtils.url('ExternalApi-DeletePost', 'id', post.id)}"
+                                                    title="Delete Post">
                                                     Delete
                                                 </button>
                                             </div>
@@ -98,23 +96,27 @@
                     <div class="text-center py-5">
                         <i class="fa fa-folder-open-o fa-3x text-muted mb-3" aria-hidden="true"></i>
                         <h5 class="text-muted">No records available</h5>
-                        <p class="text-secondary small">External API par koi posts nahi milay ya service unavailable hai.</p>
+                        <p class="text-secondary small">External API par koi posts nahi milay ya service unavailable
+                            hai.</p>
                     </div>
                 </isif>
             </div>
 
             <!--- Server-side Pagination Bar --->
             <isif condition="${pdict.pagination && pdict.pagination.totalPages > 1}">
-                <div class="card-footer bg-white py-3 d-flex flex-column flex-sm-row justify-content-between align-items-center">
+                <div
+                    class="card-footer bg-white py-3 d-flex flex-column flex-sm-row justify-content-between align-items-center">
                     <div class="text-muted small mb-2 mb-sm-0">
-                        Showing Page <strong>${pdict.pagination.page}</strong> of <strong>${pdict.pagination.totalPages}</strong> (10 records per page)
+                        Showing Page <strong>${pdict.pagination.page}</strong> of
+                        <strong>${pdict.pagination.totalPages}</strong> (10 records per page)
                     </div>
                     <nav aria-label="Posts Navigation">
                         <ul class="pagination pagination-sm m-0">
                             <!--- Previous Button --->
                             <isif condition="${pdict.pagination.hasPrev}">
                                 <li class="page-item">
-                                    <a class="page-link" href="${URLUtils.url('ExternalApi-Show', 'page', pdict.pagination.prevPage)}">
+                                    <a class="page-link"
+                                        href="${URLUtils.url('ExternalApi-Show', 'page', pdict.pagination.prevPage)}">
                                         &lt; Previous
                                     </a>
                                 </li>
@@ -133,7 +135,8 @@
                             <!--- Next Button --->
                             <isif condition="${pdict.pagination.hasNext}">
                                 <li class="page-item">
-                                    <a class="page-link" href="${URLUtils.url('ExternalApi-Show', 'page', pdict.pagination.nextPage)}">
+                                    <a class="page-link"
+                                        href="${URLUtils.url('ExternalApi-Show', 'page', pdict.pagination.nextPage)}">
                                         Next &gt;
                                     </a>
                                 </li>
@@ -150,7 +153,8 @@
     </div>
 
     <!--- Modal for Delete Confirmation (Accidental Deletion Prevention) --->
-    <div class="modal fade" id="deleteConfirmModal" tabindex="-1" role="dialog" aria-labelledby="deleteModalTitle" aria-hidden="true">
+    <div class="modal fade" id="deleteConfirmModal" tabindex="-1" role="dialog" aria-labelledby="deleteModalTitle"
+        aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered" role="document">
             <div class="modal-content shadow">
                 <div class="modal-header bg-danger text-white">
@@ -164,10 +168,13 @@
                 <div class="modal-body">
                     <p class="mb-2">Are you sure you want to delete this post?</p>
                     <div class="card bg-light p-3 border">
-                        <p class="mb-1"><strong>Post ID:</strong> <span id="modal-post-id" class="badge badge-secondary"></span></p>
-                        <p class="mb-0 text-muted"><strong>Title:</strong> <span id="modal-post-title" class="font-italic"></span></p>
+                        <p class="mb-1"><strong>Post ID:</strong> <span id="modal-post-id"
+                                class="badge badge-secondary"></span></p>
+                        <p class="mb-0 text-muted"><strong>Title:</strong> <span id="modal-post-title"
+                                class="font-italic"></span></p>
                     </div>
-                    <small class="text-danger mt-2 d-block">Note: Yeh action external API par DELETE request trigger karega.</small>
+                    <small class="text-danger mt-2 d-block">Note: Yeh action external API par DELETE request trigger
+                        karega.</small>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>

@@ -11,7 +11,7 @@
                 <!--- Back Button Link --->
                 <div class="mb-3">
                     <a href="${URLUtils.url('ExternalApi-Show')}" class="text-decoration-none text-secondary">
-                        &larr; Back to Posts List
+                        &lt; Back to Posts List
                     </a>
                 </div>
 
@@ -34,7 +34,7 @@
                         <div class="card-header bg-warning text-dark py-3 d-flex justify-content-between align-items-center">
                             <div>
                                 <h4 class="m-0 font-weight-bold">
-                                    <i class="fa fa-pencil-square-o mr-2" aria-hidden="true"></i> Edit Post #${pdict.post.id}
+                                    <i class="fa fa-pencil-square-o mr-2" aria-hidden="true"></i> Edit Post ID: ${pdict.post.id}
                                 </h4>
                                 <small class="text-dark">External API (PUT /posts/${pdict.post.id}) via SFCC Service Framework</small>
                             </div>

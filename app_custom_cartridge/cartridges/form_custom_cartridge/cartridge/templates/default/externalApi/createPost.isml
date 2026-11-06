@@ -11,7 +11,7 @@
                 <!--- Back Button Link --->
                 <div class="mb-3">
                     <a href="${URLUtils.url('ExternalApi-Show')}" class="text-decoration-none text-secondary">
-                        &larr; Back to Posts List
+                        &lt; Back to Posts List
                     </a>
                 </div>
 
