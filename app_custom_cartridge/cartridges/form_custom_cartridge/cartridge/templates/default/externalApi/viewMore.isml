@@ -26,7 +26,9 @@
         <div id="api-alert-container">
             <isif condition="${pdict.error}">
                 <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                    <strong><isprint value="${Resource.msg('heading.unavailable', 'externalApi', null)}" />:</strong> ${pdict.error}
+                    <strong>
+                        <isprint value="${Resource.msg('heading.unavailable', 'externalApi', null)}" />:</strong>
+                    ${pdict.error}
                     <button type="button" class="close" data-dismiss="alert" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
@@ -54,7 +56,8 @@
                                     <th scope="col" style="width: 10%;">${Resource.msg('label.col.userid', 'externalApi', null)}</th>
                                     <th scope="col" style="width: 27%;">${Resource.msg('label.col.title', 'externalApi', null)}</th>
                                     <th scope="col" style="width: 35%;">${Resource.msg('label.col.description', 'externalApi', null)}</th>
-                                    <th scope="col" class="text-center" style="width: 20%;">${Resource.msg('label.col.actions', 'externalApi', null)}</th>
+                                    <th scope="col" class="text-center" style="width: 20%;">
+                                        ${Resource.msg('label.col.actions', 'externalApi', null)}</th>
                                 </tr>
                             </thead>
                             <tbody id="posts-table-body">
@@ -99,7 +102,8 @@
                     <div class="text-center py-5">
                         <i class="fa fa-folder-open-o fa-3x text-muted mb-3" aria-hidden="true"></i>
                         <h5 class="text-muted">${Resource.msg('msg.no.records', 'externalApi', null)}</h5>
-                        <p class="text-secondary small">${Resource.msg('msg.no.records.detail', 'externalApi', null)}</p>
+                        <p class="text-secondary small">${Resource.msg('msg.no.records.detail', 'externalApi', null)}
+                        </p>
                     </div>
                 </isif>
             </div>
@@ -108,27 +112,31 @@
             <div class="card-footer bg-white py-3 text-center border-top" id="load-more-section">
                 <div class="mb-3 text-muted small">
                     <span id="posts-count-display">
-                        ${Resource.msgf('pagination.showing.count', 'externalApi', null, (pdict.posts ? pdict.posts.length : 0), pdict.pagination.totalRecords)}
+                        ${Resource.msgf('pagination.showing.count', 'externalApi', null, (pdict.posts ? pdict.posts.length : 0), pdict.pagination
+                        .totalRecords)}
                     </span>
                 </div>
                 <isif condition="${pdict.pagination && pdict.pagination.hasNext}">
-                    <button type="button" id="btn-load-more" class="btn btn-primary px-4 py-2 font-weight-bold shadow-sm"
+                    <button type="button" id="btn-load-more"
+                        class="btn btn-primary px-4 py-2 font-weight-bold shadow-sm"
                         data-url="${URLUtils.url('ExternalApi-GetPosts')}"
                         data-view-url="${URLUtils.url('ExternalApi-ViewPost')}"
                         data-edit-url="${URLUtils.url('ExternalApi-EditPost')}"
                         data-delete-url="${URLUtils.url('ExternalApi-DeletePost')}"
-                        data-next-page="${pdict.pagination.nextPage}"
-                        data-total-pages="${pdict.pagination.totalPages}"
+                        data-next-page="${pdict.pagination.nextPage}" data-total-pages="${pdict.pagination.totalPages}"
                         data-view-label="${Resource.msg('button.action.view', 'externalApi', null)}"
                         data-edit-label="${Resource.msg('button.action.edit', 'externalApi', null)}"
                         data-delete-label="${Resource.msg('button.action.delete', 'externalApi', null)}">
-                        <span class="spinner-border spinner-border-sm d-none mr-2" role="status" aria-hidden="true"></span>
+                        <span class="spinner-border spinner-border-sm d-none mr-2" role="status"
+                            aria-hidden="true"></span>
                         <i class="fa fa-arrow-circle-down mr-1" aria-hidden="true"></i>
                         <span class="btn-text">${Resource.msg('button.view.more', 'externalApi', null)}</span>
                     </button>
                 </isif>
-                <div id="no-more-posts" class="text-muted small mt-2 ${pdict.pagination && pdict.pagination.hasNext ? 'd-none' : ''}">
-                    <i class="fa fa-check-circle text-success mr-1" aria-hidden="true"></i> ${Resource.msg('msg.all.posts.loaded', 'externalApi', null)}
+                <div id="no-more-posts"
+                    class="text-muted small mt-2 ${pdict.pagination && pdict.pagination.hasNext ? 'd-none' : ''}">
+                    <i class="fa fa-check-circle text-success mr-1" aria-hidden="true"></i>
+                    ${Resource.msg('msg.all.posts.loaded', 'externalApi', null)}
                 </div>
             </div>
         </div>
@@ -141,7 +149,8 @@
             <div class="modal-content shadow">
                 <div class="modal-header bg-danger text-white">
                     <h5 class="modal-title font-weight-bold" id="deleteModalTitle">
-                        <i class="fa fa-exclamation-triangle mr-2" aria-hidden="true"></i> ${Resource.msg('modal.delete.title', 'externalApi', null)}
+                        <i class="fa fa-exclamation-triangle mr-2" aria-hidden="true"></i>
+                        ${Resource.msg('modal.delete.title', 'externalApi', null)}
                     </h5>
                     <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
@@ -150,15 +159,15 @@
                 <div class="modal-body">
                     <p class="mb-2">${Resource.msg('modal.delete.confirm', 'externalApi', null)}</p>
                     <div class="card bg-light p-3 border">
-                        <p class="mb-1"><strong>${Resource.msg('modal.delete.label.id', 'externalApi', null)}</strong> <span id="modal-post-id"
-                                class="badge badge-secondary"></span></p>
-                        <p class="mb-0 text-muted"><strong>${Resource.msg('modal.delete.label.title', 'externalApi', null)}</strong> <span id="modal-post-title"
-                                class="font-italic"></span></p>
+                        <p class="mb-1"><strong>${Resource.msg('modal.delete.label.id', 'externalApi', null)}</strong>
+                            <span id="modal-post-id" class="badge badge-secondary"></span></p>
+                        <p class="mb-0 text-muted"><strong>${Resource.msg('modal.delete.label.title', 'externalApi', null)}</strong> <span id="modal-post-title" class="font-italic"></span></p>
                     </div>
                     <small class="text-danger mt-2 d-block">${Resource.msg('modal.delete.note', 'externalApi', null)}</small>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">${Resource.msg('modal.delete.btn.cancel', 'externalApi', null)}</button>
+                    <button type="button" class="btn btn-secondary"
+                        data-dismiss="modal">${Resource.msg('modal.delete.btn.cancel', 'externalApi', null)}</button>
                     <button type="button" class="btn btn-danger" id="btn-confirm-delete">
                         <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
                         ${Resource.msg('modal.delete.btn.confirm', 'externalApi', null)}

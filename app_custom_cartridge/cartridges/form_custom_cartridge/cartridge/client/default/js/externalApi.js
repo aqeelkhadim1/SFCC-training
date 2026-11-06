@@ -9,6 +9,19 @@ $(document).ready(function () {
     var deleteUrl = '';
     var targetRowId = '';
 
+    // Header Navbar me 'Posts' button ensure karna
+    if ($('#nav-posts-link').length === 0) {
+        var postsUrl = '/on/demandware.store/Sites-RefArch-Site/default/ExternalApi-Show';
+        var postsNavHtml = '<li class="nav-item" role="presentation">' +
+            '<a href="' + postsUrl + '" id="nav-posts-link" class="nav-link font-weight-bold text-primary" role="link" tabindex="0">' +
+                '<i class="fa fa-newspaper-o mr-1" aria-hidden="true"></i> Posts' +
+            '</a></li>';
+        var $targetUl = $('.menu-group ul.navbar-nav, nav.navbar ul.navbar-nav').first();
+        if ($targetUl.length) {
+            $targetUl.append(postsNavHtml);
+        }
+    }
+
     // Frontend form validation (User ID, Title, Body check karna)
     function validateForm($form) {
         var isValid = true;
