@@ -296,7 +296,7 @@ $(document).ready(function () {
                             '<td class="align-middle text-center">' +
                                 '<div class="btn-group btn-group-sm" role="group" aria-label="Post Actions">' +
                                     '<a href="' + viewUrl + '?id=' + post.id + '" class="btn btn-outline-info" title="View Post Details">' + viewLabel + '</a>' +
-                                    '<a href="' + editUrl + '?id=' + post.id + '" class="btn btn-outline-warning" title="Edit Post">' + editLabel + '</a>' +
+                                    '<button type="button" class="btn btn-outline-warning btn-edit-post" data-id="' + post.id + '" data-userid="' + post.userId + '" data-title="' + safeTitle + '" data-body="' + $('<div>').text(post.body || '').html() + '" data-url="' + editUrl + '?id=' + post.id + '" title="Edit Post">' + editLabel + '</button>' +
                                     '<button type="button" class="btn btn-outline-danger btn-delete-post" data-id="' + post.id + '" data-title="' + safeTitle + '" data-url="' + deleteUrl + '?id=' + post.id + '" title="Delete Post">' + deleteLabel + '</button>' +
                                 '</div>' +
                             '</td>' +
@@ -415,7 +415,7 @@ $(document).ready(function () {
                         '<td class="align-middle text-center">' +
                             '<div class="btn-group btn-group-sm" role="group" aria-label="Post Actions">' +
                                 '<a href="' + viewUrl + '?id=' + postId + '" class="btn btn-outline-info" title="View Post Details">' + viewLabel + '</a>' +
-                                '<a href="' + editUrl + '?id=' + postId + '" class="btn btn-outline-warning" title="Edit Post">' + editLabel + '</a>' +
+                                '<button type="button" class="btn btn-outline-warning btn-edit-post" data-id="' + postId + '" data-userid="' + postUserId + '" data-title="' + safeTitle + '" data-body="' + safeBody + '" data-url="' + editUrl + '?id=' + postId + '" title="Edit Post">' + editLabel + '</button>' +
                                 '<button type="button" class="btn btn-outline-danger btn-delete-post" data-id="' + postId + '" data-title="' + safeTitle + '" data-url="' + deleteUrl + '?id=' + postId + '" title="Delete Post">' + deleteLabel + '</button>' +
                             '</div>' +
                         '</td>' +
@@ -447,6 +447,117 @@ $(document).ready(function () {
                 $btn.prop('disabled', false);
                 $spinner.addClass('d-none');
                 showAlert('#modal-form-alert-container', 'Server error: Post create nahi ho saki.', 'danger');
+            }
+        });
+    });
+
+    // 6. Edit Post - Open Edit Modal and pre-fill form
+    $(document).on('click', '.btn-edit-post', function (e) {
+        e.preventDefault();
+        var $btn = $(this);
+        var postId = $btn.data('id');
+        var userId = $btn.data('userid') || 1;
+        var title = $btn.data('title') || '';
+        var body = $btn.data('body') || '';
+        var updateUrl = $btn.data('url') || '';
+
+        $('#modal-edit-id').val(postId);
+        $('#modal-edit-badge').text('ID: ' + postId);
+        $('#modal-edit-userId').val(userId);
+        $('#modal-edit-title').val(title);
+        $('#modal-edit-body').val(body);
+        $('#editPostModalForm').attr('action', updateUrl);
+        $('#editPostModalForm').find('.is-invalid').removeClass('is-invalid');
+        $('#modal-edit-alert-container').empty();
+
+        showModal('#editPostModal');
+    });
+
+    // 7. Edit Post Modal Form Submit (Pure AJAX - Updates Row in-place without Page Reload!)
+    $('#editPostModalForm').on('submit', function (e) {
+        e.preventDefault();
+        var $form = $(this);
+        var postId = $('#modal-edit-id').val();
+        var $userId = $form.find('#modal-edit-userId');
+        var $title = $form.find('#modal-edit-title');
+        var $body = $form.find('#modal-edit-body');
+        var isValid = true;
+
+        $form.find('.is-invalid').removeClass('is-invalid');
+
+        var userIdVal = parseInt($userId.val(), 10);
+        if (!$userId.val() || isNaN(userIdVal) || userIdVal <= 0) {
+            $userId.addClass('is-invalid');
+            isValid = false;
+        }
+
+        var titleVal = $.trim($title.val());
+        if (!titleVal) {
+            $title.addClass('is-invalid');
+            isValid = false;
+        }
+
+        var bodyVal = $.trim($body.val());
+        if (!bodyVal) {
+            $body.addClass('is-invalid');
+            isValid = false;
+        }
+
+        if (!isValid) {
+            return;
+        }
+
+        var $btn = $('#btn-modal-update-post');
+        var $spinner = $btn.find('.spinner-border');
+        $btn.prop('disabled', true);
+        $spinner.removeClass('d-none');
+
+        $.ajax({
+            url: $form.attr('action'),
+            type: 'POST',
+            data: $form.serialize(),
+            success: function (res) {
+                $btn.prop('disabled', false);
+                $spinner.addClass('d-none');
+
+                if (res.success || res.data) {
+                    hideModal('#editPostModal');
+
+                    // Table Row ko directly in-place update karna
+                    var $targetRow = $('#post-row-' + postId);
+                    if ($targetRow.length) {
+                        $targetRow.find('.post-title-cell').text(titleVal);
+                        var truncated = bodyVal.length > 80 ? bodyVal.substring(0, 80) + '...' : bodyVal;
+                        $targetRow.find('.post-body-cell').text(truncated);
+                        $targetRow.find('.badge-light').text('User ID: ' + userIdVal);
+
+                        // Data attributes update karna taake dubara click par updated values khulein
+                        var $editBtn = $targetRow.find('.btn-edit-post');
+                        $editBtn.data('title', titleVal).data('body', bodyVal).data('userid', userIdVal);
+                        var $delBtn = $targetRow.find('.btn-delete-post');
+                        $delBtn.data('title', titleVal);
+
+                        // Yellow highlight animation on updated row
+                        $targetRow.addClass('table-warning');
+                        setTimeout(function () {
+                            $targetRow.removeClass('table-warning');
+                        }, 1500);
+                    }
+
+                    showAlert('#api-alert-container', 'Post ID: ' + postId + ' updated successfully without page reload!', 'success');
+                } else if (res.errors) {
+                    Object.keys(res.errors).forEach(function (field) {
+                        $form.find('#modal-edit-' + field).addClass('is-invalid');
+                        $form.find('#modal-edit-' + field + '-error').text(res.errors[field]);
+                    });
+                } else {
+                    showAlert('#modal-edit-alert-container', res.error || 'Post update nahi ho saki.', 'danger');
+                }
+            },
+            error: function () {
+                $btn.prop('disabled', false);
+                $spinner.addClass('d-none');
+                showAlert('#modal-edit-alert-container', 'Server error: Post update nahi ho saki.', 'danger');
             }
         });
     });
