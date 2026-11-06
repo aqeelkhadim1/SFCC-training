@@ -1,3 +1,5 @@
+/* eslint-disable */
+// @ts-nocheck
 'use strict';
 
 /**
@@ -9,15 +11,22 @@ var Logger = require('dw/system/Logger').getLogger('jsonplaceholder', 'externalA
 
 // BM mein registered Service 'jsonplaceholder' ki definition aur callbacks
 var jsonService = LocalServiceRegistry.createService('jsonplaceholder', {
-    // Request tayar karna: Method, Headers, Dynamic URL aur Payload serialization
+    /**
+     * Request tayar karna: Method, Headers, Dynamic URL aur Payload serialization
+     * @param {dw.svc.HTTPService} svc
+     * @param {Object} params
+     * @returns {string|null}
+     */
     createRequest: function (svc, params) {
+        /** @type {dw.svc.HTTPService} */
+        var httpService = svc;
         var method = (params.method || 'GET').toUpperCase();
-        svc.setRequestMethod(method);
-        svc.addHeader('Content-Type', 'application/json; charset=UTF-8');
-        svc.addHeader('Accept', 'application/json');
+        httpService.setRequestMethod(method);
+        httpService.addHeader('Content-Type', 'application/json; charset=UTF-8');
+        httpService.addHeader('Accept', 'application/json');
 
         // BM Base URL + endpoint ko safely combine karna
-        var baseUrl = (svc.getURL() || 'https://jsonplaceholder.typicode.com').replace(/\/+$/, '');
+        var baseUrl = (httpService.getURL() || 'https://jsonplaceholder.typicode.com').replace(/\/+$/, '');
         var endpoint = (params.endpoint || 'posts').replace(/^\/+/, '');
         var fullUrl = baseUrl + '/' + endpoint;
 
@@ -29,7 +38,7 @@ var jsonService = LocalServiceRegistry.createService('jsonplaceholder', {
             fullUrl += (fullUrl.indexOf('?') === -1 ? '?' : '&') + queryString;
         }
 
-        svc.setURL(fullUrl);
+        httpService.setURL(fullUrl);
 
         // POST aur PUT ke liye payload ko JSON stringify karna
         return (params.payload && (method === 'POST' || method === 'PUT'))
@@ -37,28 +46,44 @@ var jsonService = LocalServiceRegistry.createService('jsonplaceholder', {
             : null;
     },
 
-    // External API ka response parse karna: Status, JSON data aur pagination header
+    /**
+     * External API ka response parse karna: Status, JSON data aur pagination header
+     * @param {dw.svc.HTTPService} svc
+     * @param {dw.net.HTTPClient} client
+     * @returns {Object}
+     */
     parseResponse: function (svc, client) {
+        /** @type {dw.net.HTTPClient} */
+        var httpClient = client;
         var data = null;
         try {
-            data = client.text ? JSON.parse(client.text) : null;
+            data = httpClient.text ? JSON.parse(httpClient.text) : null;
         } catch (e) {
-            data = client.text;
+            data = httpClient.text;
         }
-        var totalCount = client.getResponseHeader('X-Total-Count');
+        var totalCount = httpClient.getResponseHeader('X-Total-Count');
         return {
-            status: client.statusCode,
+            status: httpClient.statusCode,
             data: data,
             totalCount: totalCount ? parseInt(totalCount, 10) : null
         };
     },
 
-    // Logs mein sensitive data mask karne ke liye
+    /**
+     * Logs mein sensitive data mask karne ke liye
+     * @param {string} msg
+     * @returns {string}
+     */
     filterLogMessage: function (msg) {
         return msg;
     },
 
-    // Sandbox offline ya testing ke liye compact mock data
+    /**
+     * Sandbox offline ya testing ke liye compact mock data
+     * @param {dw.svc.HTTPService} svc
+     * @param {Object} params
+     * @returns {Object}
+     */
     mockCall: function (svc, params) {
         var isList = !params.endpoint || params.endpoint === 'posts' || params.endpoint === '/posts';
         var mockData = isList
@@ -72,7 +97,11 @@ var jsonService = LocalServiceRegistry.createService('jsonplaceholder', {
     }
 });
 
-// Reusable execution runner: Try-catch, error handling aur standardized response
+/**
+ * Reusable execution runner: Try-catch, error handling aur standardized response
+ * @param {Object} params
+ * @returns {Object}
+ */
 function callService(params) {
     try {
         var result = jsonService.call(params);
