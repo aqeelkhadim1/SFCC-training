@@ -16,7 +16,9 @@
                 <a href="${URLUtils.url('ExternalApi-Show')}" class="btn btn-outline-secondary mr-2 shadow-sm">
                     <i class="fa fa-list-ol mr-1" aria-hidden="true"></i> ${Resource.msg('link.back.to.paginated', 'externalApi', null)}
                 </a>
-                <button type="button" class="btn btn-primary shadow-sm" data-toggle="modal" data-target="#createPostModal">
+                <button type="button" class="btn btn-primary shadow-sm" id="btn-open-create-modal"
+                    data-toggle="modal" data-target="#createPostModal"
+                    data-bs-toggle="modal" data-bs-target="#createPostModal">
                     <i class="fa fa-plus-circle mr-1" aria-hidden="true"></i> ${Resource.msg('button.create.new.post', 'externalApi', null)}
                 </button>
             </div>
@@ -152,7 +154,7 @@
                         <i class="fa fa-exclamation-triangle mr-2" aria-hidden="true"></i>
                         ${Resource.msg('modal.delete.title', 'externalApi', null)}
                     </h5>
-                    <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                    <button type="button" class="close text-white btn-close" data-dismiss="modal" data-bs-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
@@ -185,7 +187,7 @@
                     <h5 class="modal-title font-weight-bold" id="createModalTitle">
                         <i class="fa fa-plus-circle mr-2" aria-hidden="true"></i> ${Resource.msg('heading.create.post', 'externalApi', null)}
                     </h5>
-                    <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                    <button type="button" class="close text-white btn-close" data-dismiss="modal" data-bs-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
@@ -237,7 +239,7 @@
                         </div>
                     </div>
                     <div class="modal-footer bg-light">
-                        <button type="button" class="btn btn-secondary" data-dismiss="modal">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal" data-bs-dismiss="modal">
                             ${Resource.msg('button.form.cancel', 'externalApi', null)}
                         </button>
                         <button type="submit" class="btn btn-primary px-4 font-weight-bold shadow-sm" id="btn-modal-create-post">

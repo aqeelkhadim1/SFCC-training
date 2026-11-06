@@ -76,6 +76,80 @@ $(document).ready(function () {
         $(containerId).html(alertHtml);
     }
 
+    // Universal Modal Helper (Supports Bootstrap 5 native, Bootstrap 4 jQuery & CSS fallback)
+    function showModal(modalSelector) {
+        var el = document.querySelector(modalSelector);
+        if (!el) return;
+
+        if (window.bootstrap && window.bootstrap.Modal) {
+            try {
+                var bsModal = window.bootstrap.Modal.getOrCreateInstance(el);
+                bsModal.show();
+                return;
+            } catch (e) {}
+        }
+        if ($.fn && $.fn.modal) {
+            try {
+                $(modalSelector).modal('show');
+                return;
+            } catch (err) {}
+        }
+        // Direct CSS fallback
+        $(modalSelector).addClass('show').css('display', 'block').removeAttr('aria-hidden').attr('aria-modal', 'true');
+        if ($('.modal-backdrop').length === 0) {
+            $('body').addClass('modal-open').append('<div class="modal-backdrop fade show"></div>');
+        }
+    }
+
+    function hideModal(modalSelector) {
+        var el = document.querySelector(modalSelector);
+        if (!el) return;
+
+        if (window.bootstrap && window.bootstrap.Modal) {
+            try {
+                var bsModal = window.bootstrap.Modal.getInstance(el) || window.bootstrap.Modal.getOrCreateInstance(el);
+                if (bsModal) {
+                    bsModal.hide();
+                    return;
+                }
+            } catch (e) {}
+        }
+        if ($.fn && $.fn.modal) {
+            try {
+                $(modalSelector).modal('hide');
+                return;
+            } catch (err) {}
+        }
+        $(modalSelector).removeClass('show').css('display', 'none').attr('aria-hidden', 'true').removeAttr('aria-modal');
+        $('body').removeClass('modal-open');
+        $('.modal-backdrop').remove();
+    }
+
+    // Explicit click handler for opening Create Post Modal
+    $(document).on('click', '#btn-open-create-modal, [data-target="#createPostModal"], [data-bs-target="#createPostModal"]', function (e) {
+        e.preventDefault();
+        $('#createPostModalForm')[0].reset();
+        $('#createPostModalForm').find('.is-invalid').removeClass('is-invalid');
+        $('#modal-form-alert-container').empty();
+        showModal('#createPostModal');
+    });
+
+    // Explicit click handler for closing any modal
+    $(document).on('click', '[data-dismiss="modal"], [data-bs-dismiss="modal"]', function (e) {
+        e.preventDefault();
+        var $modal = $(this).closest('.modal');
+        if ($modal.length) {
+            hideModal('#' + $modal.attr('id'));
+        }
+    });
+
+    // Close modal when clicking on backdrop
+    $(document).on('click', '.modal', function (e) {
+        if ($(e.target).hasClass('modal')) {
+            hideModal('#' + $(this).attr('id'));
+        }
+    });
+
     // Reusable AJAX form submission handler (Create aur Edit dono forms ke liye)
     function handleFormSubmit($form, defaultSuccessMsg) {
         if (!validateForm($form)) {
@@ -136,7 +210,7 @@ $(document).ready(function () {
         targetRowId = '#post-row-' + $(this).data('id');
         $('#modal-post-id').text($(this).data('id'));
         $('#modal-post-title').text($(this).data('title'));
-        $('#deleteConfirmModal').modal('show');
+        showModal('#deleteConfirmModal');
     });
 
     // Delete Modal Confirm Button Click (Pure AJAX)
@@ -152,7 +226,7 @@ $(document).ready(function () {
             success: function (res) {
                 $btn.prop('disabled', false);
                 $spinner.addClass('d-none');
-                $('#deleteConfirmModal').modal('hide');
+                hideModal('#deleteConfirmModal');
 
                 if (res.success) {
                     // Row ko animate karke table se remove karna
@@ -165,7 +239,7 @@ $(document).ready(function () {
             error: function () {
                 $btn.prop('disabled', false);
                 $spinner.addClass('d-none');
-                $('#deleteConfirmModal').modal('hide');
+                hideModal('#deleteConfirmModal');
                 showAlert('#api-alert-container', 'Server error: Post delete nahi ho saki.', 'danger');
             }
         });
@@ -325,7 +399,7 @@ $(document).ready(function () {
 
                     // Form reset aur modal close
                     $form[0].reset();
-                    $('#createPostModal').modal('hide');
+                    hideModal('#createPostModal');
 
                     // Naye post ki row banakar table ke TOP par prepend karna (No Page Reload!)
                     var safeTitle = $('<div>').text(createdPost.title || titleVal).html();
