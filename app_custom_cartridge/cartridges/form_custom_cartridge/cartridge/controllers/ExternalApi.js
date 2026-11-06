@@ -48,15 +48,6 @@ server.get('ViewMore', function (req, res, next) {
 });
 
 /**
- * ExternalApi-view_more : Alias for ViewMore route
- */
-server.get('view_more', function (req, res, next) {
-    var viewData = externalApiHelper.getPosts(1, 10);
-    res.render('externalApi/viewMore', viewData);
-    next();
-});
-
-/**
  * ExternalApi-ViewPost : Specific post details dekhna (GET /posts/{id})
  */
 server.get('ViewPost', function (req, res, next) {
