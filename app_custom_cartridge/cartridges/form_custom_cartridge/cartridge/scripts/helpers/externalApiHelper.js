@@ -100,8 +100,8 @@ function calculatePagination(elements, page, limit, totalRecords) {
         }
     }
 
-    var totalPages = Math.max(1, Math.ceil(total / pageSize));
-    currentPage = Math.min(currentPage, totalPages);
+    var totalPages = parseInt(Math.max(1, Math.ceil(total / pageSize)), 10);
+    currentPage = parseInt(Math.min(currentPage, totalPages), 10);
 
     return {
         pagingModel: paging,
