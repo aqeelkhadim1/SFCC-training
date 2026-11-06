@@ -1,127 +1,129 @@
 <isdecorate template="common/layout/page">
+    <isscript>
+        var assets = require('*/cartridge/scripts/assets.js');
+        assets.addCss('/css/externalApi.css');
+        assets.addJs('/js/externalApi.js');
+    </isscript>
+
     <div class="container my-4">
-        <!--- Page Header --->
-        <div class="row align-items-center mb-3">
-            <div class="col-sm-8">
-                <h1 class="page-title mb-1">Posts Management</h1>
-                <p class="text-muted small mb-0">External REST API Integration (JSONPlaceholder)</p>
+
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h1>${Resource.msg('title.posts.management', 'externalApi', null)}</h1>
+                <p class="text-muted mb-0">${Resource.msg('subtitle.posts.management', 'externalApi', null)}</p>
             </div>
-            <div class="col-sm-4 text-sm-right mt-3 mt-sm-0">
-                <!--- Create Post Placeholder (Day 2) --->
-                <button type="button" class="btn btn-primary" disabled
-                    title="Create Post feature will be available on Day 2">
-                    <i class="fa fa-plus" aria-hidden="true"></i> Create New Post
+
+            <button type="button" class="btn btn-primary js-create-post" data-bs-toggle="modal"
+                data-bs-target="#createPostModal" data-toggle="modal" data-target="#createPostModal">
+                ${Resource.msg('btn.create.post', 'externalApi', null)}
+            </button>
+        </div>
+
+        <div id="api-alert-container">
+            <isif condition="${pdict.errorMessage}">
+                <div class="alert alert-danger">
+                    ${pdict.errorMessage}
+                </div>
+            </isif>
+        </div>
+
+        <div id="posts-config" data-get-url="${URLUtils.url('ExternalApi-GetPosts')}"
+            data-view-url="${URLUtils.url('ExternalApi-ViewPost')}"
+            data-save-url="${URLUtils.url('ExternalApi-SavePost')}"
+            data-update-url="${URLUtils.url('ExternalApi-UpdatePost')}"
+            data-delete-url="${URLUtils.url('ExternalApi-DeletePost')}">
+        </div>
+
+        <div class="card">
+            <div class="card-header d-flex justify-content-between">
+                <span>
+                    ${Resource.msg('label.total.posts', 'externalApi', null)}
+                    <strong id="post-count">${pdict.pagination.totalCount}</strong>
+                </span>
+                <span class="badge badge-success">${Resource.msg('badge.live.crud', 'externalApi', null)}</span>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead class="thead-dark">
+                        <tr>
+                            <th>${Resource.msg('th.id', 'externalApi', null)}</th>
+                            <th>${Resource.msg('th.userid', 'externalApi', null)}</th>
+                            <th>${Resource.msg('th.title', 'externalApi', null)}</th>
+                            <th>${Resource.msg('th.description', 'externalApi', null)}</th>
+                            <th class="actions-col">${Resource.msg('th.actions', 'externalApi', null)}</th>
+                        </tr>
+                    </thead>
+
+                    <tbody id="posts-table-body">
+                        <isloop items="${pdict.posts}" var="post">
+                            <tr data-id="${post.id}">
+                                <td>${post.id}</td>
+                                <td>${post.userId}</td>
+                                <td>${post.title}</td>
+                                <td>${post.body}</td>
+                                <td class="actions-cell">
+                                    <div class="action-btn-group">
+                                        <button type="button" class="btn btn-sm btn-outline-info btn-action js-view"
+                                            data-id="${post.id}"
+                                            title="${Resource.msg('btn.view', 'externalApi', null)}"
+                                            aria-label="${Resource.msg('btn.view', 'externalApi', null)}">
+                                            <i class="fa fa-eye" aria-hidden="true"></i>
+                                        </button>
+
+                                        <button type="button"
+                                            class="btn btn-sm btn-outline-secondary btn-action js-edit"
+                                            data-id="${post.id}"
+                                            title="${Resource.msg('btn.edit', 'externalApi', null)}"
+                                            aria-label="${Resource.msg('btn.edit', 'externalApi', null)}">
+                                            <i class="fa fa-pencil" aria-hidden="true"></i>
+                                        </button>
+
+                                        <button type="button" class="btn btn-sm btn-outline-danger btn-action js-delete"
+                                            data-id="${post.id}"
+                                            title="${Resource.msg('btn.delete', 'externalApi', null)}"
+                                            aria-label="${Resource.msg('btn.delete', 'externalApi', null)}">
+                                            <i class="fa fa-trash" aria-hidden="true"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        </isloop>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mt-4">
+            <div id="page-info" class="text-muted">
+                ${Resource.msgf('label.page.info', 'externalApi', null, pdict.pagination.page, pdict.pagination.totalPages)}
+            </div>
+
+            <div>
+                <a href="${URLUtils.url('ExternalApi-ViewMore')}" class="btn btn-primary px-4 py-2 shadow-sm">
+                    <i class="fa fa-arrow-down me-2" aria-hidden="true"></i>
+                    <span>${Resource.msg('btn.view.more', 'externalApi', null)}</span>
+                </a>
+            </div>
+
+            <div class="btn-group">
+                <button type="button" id="prev-page" class="btn btn-outline-primary btn-sm me-1"
+                    data-url="${pdict.pagination.previousUrl || ''}" ${!pdict.pagination.hasPrevious ? 'disabled' : ''}>
+                    ${Resource.msg('btn.previous', 'externalApi', null)}
+                </button>
+
+                <button type="button" id="next-page" class="btn btn-outline-primary btn-sm"
+                    data-url="${pdict.pagination.nextUrl || ''}" ${!pdict.pagination.hasNext ? 'disabled' : ''}>
+                    ${Resource.msg('btn.next', 'externalApi', null)}
                 </button>
             </div>
         </div>
 
-        <!--- Error Message Alert --->
-        <isif condition="${pdict.errorMessage}">
-            <div class="alert alert-danger alert-dismissible fade show my-3" role="alert">
-                <i class="fa fa-exclamation-triangle mr-2" aria-hidden="true"></i>
-                <span>${pdict.errorMessage}</span>
-            </div>
-        </isif>
-
-        <!--- Empty Records Message --->
-        <isif condition="${!pdict.errorMessage && (!pdict.posts || pdict.posts.length === 0)}">
-            <div class="card my-4 text-center py-5">
-                <div class="card-body">
-                    <p class="card-text text-muted mb-0">No records found from external API.</p>
-                </div>
-            </div>
-        </isif>
-
-        <!--- Posts Table --->
-        <isif condition="${pdict.posts && pdict.posts.length > 0}">
-            <div class="card shadow-sm">
-                <div class="card-header bg-light d-flex justify-content-between align-items-center">
-                    <span class="font-weight-bold">
-                        <isif condition="${pdict.pagination}">
-                            Showing Page ${pdict.pagination.page} of ${pdict.pagination.totalPages} (Total:
-                            ${pdict.pagination.totalCount} posts)
-                        <iselse/>
-                            Total Posts: ${pdict.posts.length}
-                        </isif>
-                    </span>
-                    <span class="badge badge-info">Day 1 Scope</span>
-                </div>
-                <div class="table-responsive">
-                    <table class="table table-hover table-striped mb-0">
-                        <thead class="thead-dark">
-                            <tr>
-                                <th scope="col" style="width: 70px;" class="text-center">ID</th>
-                                <th scope="col" style="width: 90px;" class="text-center">User ID</th>
-                                <th scope="col" style="width: 250px;">Title</th>
-                                <th scope="col">Description</th>
-                                <th scope="col" style="width: 210px;" class="text-center">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <isloop items="${pdict.posts}" var="post">
-                                <tr>
-                                    <td class="text-center font-weight-bold align-middle">${post.id}</td>
-                                    <td class="text-center align-middle">${post.userId}</td>
-                                    <td class="align-middle font-weight-bold text-dark">${post.title}</td>
-                                    <td class="align-middle text-secondary small">${post.body}</td>
-                                    <td class="text-center align-middle">
-                                        <div class="btn-group btn-group-sm" role="group" aria-label="Post Actions">
-                                            <!--- View Action: tests getPostById(postId) via JSON route --->
-                                            <a href="${URLUtils.url('ExternalApi-ViewPost', 'id', post.id)}"
-                                                class="btn btn-outline-info" target="_blank"
-                                                title="View Post Details (JSON)">
-                                                View
-                                            </a>
-                                            <!--- Edit Action Placeholder (Day 2) --->
-                                            <button type="button" class="btn btn-outline-secondary" disabled
-                                                title="Edit Post (Available Day 2)">
-                                                Edit
-                                            </button>
-                                            <!--- Delete Action Placeholder (Day 2) --->
-                                            <button type="button" class="btn btn-outline-danger" disabled
-                                                title="Delete Post (Available Day 2)">
-                                                Delete
-                                            </button>
-                                        </div>
-                                    </td>
-                                </tr>
-                            </isloop>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            <!--- Pagination Navigation Controls (SFRA PagingModel Style) --->
-            <isif condition="${pdict.pagination && pdict.pagination.totalPages > 1}">
-                <div class="d-flex justify-content-between align-items-center mt-3">
-                    <div>
-                        <isif condition="${pdict.pagination.hasPrevious}">
-                            <a href="${pdict.pagination.previousUrl || URLUtils.url('ExternalApi-Show', 'page', pdict.pagination.previousPage, 'limit', pdict
-                                     .pagination.limit)}"
-                                class="btn btn-outline-primary btn-sm">
-                                &laquo; Previous
-                            </a>
-                        <iselse/>
-                            <button class="btn btn-outline-secondary btn-sm" disabled>&laquo; Previous</button>
-                        </isif>
-                    </div>
-                    <span class="text-muted small">
-                        Page <strong>${pdict.pagination.page}</strong> of
-                        <strong>${pdict.pagination.totalPages}</strong>
-                    </span>
-                    <div>
-                        <isif condition="${pdict.pagination.hasNext}">
-                            <a href="${pdict.pagination.nextUrl || URLUtils.url('ExternalApi-Show', 'page', pdict.pagination.nextPage, 'limit', pdict
-                                     .pagination.limit)}"
-                                class="btn btn-outline-primary btn-sm">
-                                Next &raquo;
-                            </a>
-                        <iselse/>
-                            <button class="btn btn-outline-secondary btn-sm" disabled>Next &raquo;</button>
-                        </isif>
-                    </div>
-                </div>
-            </isif>
-        </isif>
     </div>
+
+    <isinclude template="externalApi/modal/createPostModal" />
+    <isinclude template="externalApi/modal/viewPostModal" />
+    <isinclude template="externalApi/modal/editPostModal" />
+    <isinclude template="externalApi/modal/deletePostModal" />
+
 </isdecorate>

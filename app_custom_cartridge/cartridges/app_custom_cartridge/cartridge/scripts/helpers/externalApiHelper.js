@@ -1,265 +1,147 @@
 'use strict';
 
-var PagingModel = require('dw/web/PagingModel');
-var ArrayList = require('dw/util/ArrayList');
-var URLUtils = require('dw/web/URLUtils');
+var externalApiService = require('*/cartridge/scripts/services/externalApiService');
+var Logger = require('dw/system/Logger').getLogger('externalApi', 'helper');
 
 var DEFAULT_PAGE_SIZE = 10;
 var MAX_PAGE_SIZE = 100;
-var TOTAL_RECORDS_FALLBACK = 100;
 
 /**
- * Parses a positive integer.
- *
- * @param {*} value - Input value
- * @param {number|null} fallback - Fallback value
- * @returns {number|null} Parsed integer or fallback
+ * Executes external API call via externalApiService using serviceConfig
+ * Flow: Controller -> Helper -> Service
+ * @param {Object} serviceConfig - Configuration object { requestType, requestURL, payload }
+ * @returns {Object} Normalized result { ok, data, errorMessage }
  */
-function parsePositiveInteger(value, fallback) {
-    if (value === null || value === undefined || value === '') {
-        return fallback;
-    }
+function callApi(serviceConfig) {
+    var config = serviceConfig || {};
 
-    var str = String(value).trim();
+    try {
+        var result = externalApiService.getService().call(config);
 
-    if (!/^\d+$/.test(str)) {
-        return fallback;
-    }
-
-    var parsed = parseInt(str, 10);
-
-    if (!isFinite(parsed) || parsed <= 0) {
-        return fallback;
-    }
-
-    return parsed;
-}
-
-/**
- * Parses a non-negative integer.
- *
- * @param {*} value - Input value
- * @param {number} fallback - Fallback value
- * @returns {number} Parsed integer or fallback
- */
-function parseNonNegativeInteger(value, fallback) {
-    if (value === null || value === undefined || value === '') {
-        return fallback;
-    }
-
-    var str = String(value).trim();
-
-    if (!/^\d+$/.test(str)) {
-        return fallback;
-    }
-
-    var parsed = parseInt(str, 10);
-
-    if (!isFinite(parsed) || parsed < 0) {
-        return fallback;
-    }
-
-    return parsed;
-}
-
-/**
- * Validates a post ID.
- *
- * @param {*} value - Post ID
- * @returns {Object} Validation result
- */
-function validatePostId(value) {
-    var postId = parsePositiveInteger(value, null);
-
-    if (!postId) {
-        return {
-            valid: false,
-            message: 'Post ID must be a positive integer.'
-        };
-    }
-
-    return {
-        valid: true,
-        value: postId
-    };
-}
-
-/**
- * Validates create/update post payload.
- *
- * @param {*} userId - User ID
- * @param {*} title - Post title
- * @param {*} body - Post body
- * @returns {Object} Validation result
- */
-function validatePostPayload(userId, title, body) {
-    var parsedUserId = parsePositiveInteger(userId, null);
-    var cleanTitle = title === null || title === undefined
-        ? ''
-        : String(title).trim();
-    var cleanBody = body === null || body === undefined
-        ? ''
-        : String(body).trim();
-
-    if (!parsedUserId) {
-        return {
-            valid: false,
-            message: 'User ID must be a valid positive integer.'
-        };
-    }
-
-    if (!cleanTitle || !cleanBody) {
-        return {
-            valid: false,
-            message: 'Title and Description are required.'
-        };
-    }
-
-    return {
-        valid: true,
-        payload: {
-            userId: parsedUserId,
-            title: cleanTitle,
-            body: cleanBody
+        if (result && result.ok) {
+            return {
+                ok: true,
+                data: result.object
+            };
         }
+
+        // Log API failure
+        Logger.error('API Failure: [{0}] {1} - Status: {2}, Message: {3}',
+            config.requestType || 'GET',
+            config.requestURL || 'posts',
+            result ? result.status : 'UNKNOWN',
+            result ? (result.errorMessage || '') : ''
+        );
+
+        return {
+            ok: false,
+            errorMessage: result ? (result.errorMessage || result.status) : 'Service call failed'
+        };
+    } catch (e) {
+        var errorMessage = e instanceof Error
+            ? e.message
+            : String(e);
+
+        Logger.error('API Exception: [{0}] {1} - {2}',
+            config.requestType || 'GET',
+            config.requestURL || 'posts',
+            errorMessage
+        );
+
+        return {
+            ok: false,
+            errorMessage: errorMessage || 'API request failed'
+        };
+    }
+}
+
+/**
+ * Validates whether the given value is a positive integer ID
+ * @param {*} value - The input value to validate
+ * @returns {boolean} True if value is a valid positive integer
+ */
+function isValidId(value) {
+    return /^[1-9]\d*$/.test(String(value));
+}
+
+/**
+ * Validates post payload fields (userId, title, body)
+ * @param {Object} payload - Post payload object
+ * @returns {Object} Validation status and message
+ */
+function validatePost(payload) {
+    if (!payload) {
+        return {
+            valid: false,
+            message: 'Post data is required'
+        };
+    }
+
+    if (!isValidId(payload.userId)) {
+        return {
+            valid: false,
+            message: 'Valid User ID is required'
+        };
+    }
+
+    if (
+        typeof payload.title !== 'string' ||
+        !payload.title.trim()
+    ) {
+        return {
+            valid: false,
+            message: 'Title is required'
+        };
+    }
+
+    if (
+        typeof payload.body !== 'string' ||
+        !payload.body.trim()
+    ) {
+        return {
+            valid: false,
+            message: 'Description is required'
+        };
+    }
+
+    return {
+        valid: true
     };
 }
 
 /**
- * Extracts and sanitizes pagination parameters.
- *
- * Supports:
- * - start and sz
- * - page and limit
- *
- * @param {Object} queryString - Request query parameters
- * @returns {Object} Pagination parameters
+ * Extracts and sanitizes pagination parameters from request query
+ * Supports SFCC native 'start'/'sz' and REST 'page'/'limit' parameters
+ * @param {Object} queryString - req.querystring object
+ * @returns {Object} Sanitized pagination parameters { page, pageSize, limit, start }
  */
-function getPaginationParams(queryString) {
+function getPagingParams(queryString) {
     var query = queryString || {};
 
-    var limit = parsePositiveInteger(query.sz, null);
-
-    if (!limit) {
-        limit = parsePositiveInteger(query.limit, DEFAULT_PAGE_SIZE);
+    var size = parseInt(query.pageSize || query.limit || query.sz, 10) || DEFAULT_PAGE_SIZE;
+    if (size < 1 || size > MAX_PAGE_SIZE) {
+        size = DEFAULT_PAGE_SIZE;
     }
 
-    limit = Math.min(limit, MAX_PAGE_SIZE);
-
-    var page = parsePositiveInteger(query.page, null);
-    var start = parseNonNegativeInteger(query.start, 0);
-
-    if (page) {
-        start = (page - 1) * limit;
+    var page = 1;
+    if (query.start !== undefined && !query.page) {
+        var startOffset = Math.max(0, parseInt(query.start, 10) || 0);
+        page = Math.floor(startOffset / size) + 1;
     } else {
-        page = Math.floor(start / limit) + 1;
+        page = Math.max(1, parseInt(query.page, 10) || 1);
     }
 
     return {
         page: page,
-        limit: limit,
-        start: start,
-        sz: limit
+        pageSize: size,
+        limit: size,
+        start: (page - 1) * size
     };
-}
-
-/**
- * Creates pagination metadata for storefront and AJAX responses.
- *
- * @param {Array} records - Current page records
- * @param {number} currentPage - One-based page number
- * @param {number} pageSize - Page size
- * @param {number} totalCount - Total record count
- * @param {string} baseUrl - Optional pagination URL
- * @returns {Object} Pagination view model
- */
-function createPaginationModel(
-    records,
-    currentPage,
-    pageSize,
-    totalCount,
-    baseUrl
-) {
-    var safePage = parsePositiveInteger(currentPage, 1);
-    var safePageSize = parsePositiveInteger(pageSize, DEFAULT_PAGE_SIZE);
-    var count = parseNonNegativeInteger(totalCount, TOTAL_RECORDS_FALLBACK);
-
-    var pageCount = Math.ceil(count / safePageSize);
-    var currentPageIndex = safePage - 1;
-    var startOffset = currentPageIndex * safePageSize;
-
-    var list = new ArrayList(records || []);
-    var pagingModel = new PagingModel(list.iterator(), count);
-
-    pagingModel.setStart(startOffset);
-    pagingModel.setPageSize(safePageSize);
-
-    var endpointUrl = baseUrl || URLUtils.url('ExternalApi-Show');
-
-    var hasPrevious = currentPageIndex > 0;
-    var hasNext = currentPageIndex < pageCount - 1;
-
-    var previousUrl = hasPrevious
-        ? pagingModel.appendPaging(
-            endpointUrl,
-            startOffset - safePageSize
-        ).toString()
-        : null;
-
-    var nextUrl = hasNext
-        ? pagingModel.appendPaging(
-            endpointUrl,
-            startOffset + safePageSize
-        ).toString()
-        : null;
-
-    return {
-        page: safePage,
-        pageNumber: currentPageIndex,
-        limit: safePageSize,
-        pageSize: safePageSize,
-        start: startOffset,
-        totalCount: count,
-        count: count,
-        totalPages: pageCount,
-        pageCount: pageCount,
-        maxPage: pageCount - 1,
-        hasPrevious: hasPrevious,
-        hasNext: hasNext,
-        previousPage: hasPrevious ? safePage - 1 : null,
-        nextPage: hasNext ? safePage + 1 : null,
-        previousUrl: previousUrl,
-        nextUrl: nextUrl
-    };
-}
-
-/**
- * Creates a native PagingModel for ISML templates.
- *
- * @param {Array} records - Current page records
- * @param {number} currentPage - One-based page number
- * @param {number} pageSize - Page size
- * @param {number} totalCount - Total record count
- * @returns {dw.web.PagingModel} Native PagingModel
- */
-function createPagingModel(records, currentPage, pageSize, totalCount) {
-    var safePage = parsePositiveInteger(currentPage, 1);
-    var safePageSize = parsePositiveInteger(pageSize, DEFAULT_PAGE_SIZE);
-    var count = parseNonNegativeInteger(totalCount, TOTAL_RECORDS_FALLBACK);
-
-    var list = new ArrayList(records || []);
-    var pagingModel = new PagingModel(list.iterator(), count);
-
-    pagingModel.setStart((safePage - 1) * safePageSize);
-    pagingModel.setPageSize(safePageSize);
-
-    return pagingModel;
 }
 
 module.exports = {
-    validatePostId: validatePostId,
-    validatePostPayload: validatePostPayload,
-    getPaginationParams: getPaginationParams,
-    createPaginationModel: createPaginationModel,
-    createPagingModel: createPagingModel
+    callApi: callApi,
+    isValidId: isValidId,
+    validatePost: validatePost,
+    getPagingParams: getPagingParams
 };
