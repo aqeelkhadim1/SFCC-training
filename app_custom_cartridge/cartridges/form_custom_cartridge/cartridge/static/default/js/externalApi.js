@@ -2,7 +2,7 @@
 
 /**
  * externalApi.js
- * Storefront client script: Frontend validation, AJAX CRUD (Create, Update, Delete), Modal controls & Load More pagination.
+ * Storefront client script: Frontend validation, AJAX CRUD (Create, Update, Delete) aur modal controls.
  */
 
 $(document).ready(function () {
@@ -258,6 +258,121 @@ $(document).ready(function () {
                 $spinner.addClass('d-none');
                 $icon.removeClass('d-none');
                 showAlert('#api-alert-container', 'Server error: Load more request failed.', 'danger');
+            }
+        });
+    });
+
+    // 5. Create Post Modal Form Submit (Pure AJAX - No Page Reload & Immediately Prepends to Table!)
+    $('#createPostModalForm').on('submit', function (e) {
+        e.preventDefault();
+        var $form = $(this);
+        var $userId = $form.find('#modal-userId');
+        var $title = $form.find('#modal-title');
+        var $body = $form.find('#modal-body');
+        var isValid = true;
+
+        $form.find('.is-invalid').removeClass('is-invalid');
+
+        var userIdVal = parseInt($userId.val(), 10);
+        if (!$userId.val() || isNaN(userIdVal) || userIdVal <= 0) {
+            $userId.addClass('is-invalid');
+            isValid = false;
+        }
+
+        var titleVal = $.trim($title.val());
+        if (!titleVal) {
+            $title.addClass('is-invalid');
+            isValid = false;
+        }
+
+        var bodyVal = $.trim($body.val());
+        if (!bodyVal) {
+            $body.addClass('is-invalid');
+            isValid = false;
+        }
+
+        if (!isValid) {
+            return;
+        }
+
+        var $btn = $('#btn-modal-create-post');
+        var $spinner = $btn.find('.spinner-border');
+        $btn.prop('disabled', true);
+        $spinner.removeClass('d-none');
+
+        var viewUrl = $form.data('view-url') || '';
+        var editUrl = $form.data('edit-url') || '';
+        var deleteUrl = $form.data('delete-url') || '';
+        var viewLabel = $form.data('view-label') || 'View';
+        var editLabel = $form.data('edit-label') || 'Edit';
+        var deleteLabel = $form.data('delete-label') || 'Delete';
+
+        $.ajax({
+            url: $form.attr('action'),
+            type: 'POST',
+            data: $form.serialize(),
+            success: function (res) {
+                $btn.prop('disabled', false);
+                $spinner.addClass('d-none');
+
+                if (res.success || res.data) {
+                    var createdPost = res.data || {
+                        id: 101,
+                        userId: userIdVal,
+                        title: titleVal,
+                        body: bodyVal
+                    };
+
+                    // Form reset aur modal close
+                    $form[0].reset();
+                    $('#createPostModal').modal('hide');
+
+                    // Naye post ki row banakar table ke TOP par prepend karna (No Page Reload!)
+                    var safeTitle = $('<div>').text(createdPost.title || titleVal).html();
+                    var safeBody = $('<div>').text(createdPost.body || bodyVal).html();
+                    var postId = createdPost.id || 101;
+                    var postUserId = createdPost.userId || userIdVal;
+
+                    var newRowHtml = '<tr id="post-row-' + postId + '" class="table-success" style="display:none;">' +
+                        '<td class="align-middle font-weight-bold text-dark">' + postId + ' <span class="badge badge-success ml-1">New</span></td>' +
+                        '<td class="align-middle"><span class="badge badge-light border text-secondary px-2 py-1">User ID: ' + postUserId + '</span></td>' +
+                        '<td class="align-middle font-weight-bold text-dark post-title-cell">' + safeTitle + '</td>' +
+                        '<td class="align-middle text-muted post-body-cell">' + safeBody + '</td>' +
+                        '<td class="align-middle text-center">' +
+                            '<div class="btn-group btn-group-sm" role="group" aria-label="Post Actions">' +
+                                '<a href="' + viewUrl + '?id=' + postId + '" class="btn btn-outline-info" title="View Post Details">' + viewLabel + '</a>' +
+                                '<a href="' + editUrl + '?id=' + postId + '" class="btn btn-outline-warning" title="Edit Post">' + editLabel + '</a>' +
+                                '<button type="button" class="btn btn-outline-danger btn-delete-post" data-id="' + postId + '" data-title="' + safeTitle + '" data-url="' + deleteUrl + '?id=' + postId + '" title="Delete Post">' + deleteLabel + '</button>' +
+                            '</div>' +
+                        '</td>' +
+                    '</tr>';
+
+                    var $newRow = $(newRowHtml);
+                    $('#posts-table-body').prepend($newRow);
+                    $newRow.fadeIn(600);
+
+                    // Success alert show karna
+                    showAlert('#api-alert-container', 'Post successfully created! (ID: ' + postId + ') and added to the top of table without page reload.', 'success');
+
+                    // Count update karna
+                    var currentCount = $('#posts-table-body tr').length;
+                    var countText = $('#posts-count-display').text();
+                    if (countText && countText.includes('total')) {
+                        $('#posts-count-display').text('Showing ' + currentCount + ' of 100+ total posts');
+                    }
+                } else if (res.errors) {
+                    Object.keys(res.errors).forEach(function (field) {
+                        $form.find('#modal-' + field).addClass('is-invalid');
+                        $form.find('#modal-' + field + '-error').text(res.errors[field]);
+                    });
+                } else {
+                    showAlert('#modal-form-alert-container', res.error || 'Post create nahi ho saki.', 'danger');
+                }
+            },
+            error: function () {
+                $btn.prop('disabled', false);
+                $spinner.addClass('d-none');
+                showAlert('#modal-form-alert-container', 'Server error: Post create nahi ho saki.', 'danger');
             }
         });
     });

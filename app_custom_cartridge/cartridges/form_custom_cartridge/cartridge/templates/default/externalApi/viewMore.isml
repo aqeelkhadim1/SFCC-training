@@ -16,9 +16,9 @@
                 <a href="${URLUtils.url('ExternalApi-Show')}" class="btn btn-outline-secondary mr-2 shadow-sm">
                     <i class="fa fa-list-ol mr-1" aria-hidden="true"></i> ${Resource.msg('link.back.to.paginated', 'externalApi', null)}
                 </a>
-                <a href="${URLUtils.url('ExternalApi-CreatePost')}" class="btn btn-primary shadow-sm">
+                <button type="button" class="btn btn-primary shadow-sm" data-toggle="modal" data-target="#createPostModal">
                     <i class="fa fa-plus-circle mr-1" aria-hidden="true"></i> ${Resource.msg('button.create.new.post', 'externalApi', null)}
-                </a>
+                </button>
             </div>
         </div>
 
@@ -173,6 +173,79 @@
                         ${Resource.msg('modal.delete.btn.confirm', 'externalApi', null)}
                     </button>
                 </div>
+            </div>
+        </div>
+    </div>
+    <!--- Modal for Create New Post (AJAX without Page Reload) --->
+    <div class="modal fade" id="createPostModal" tabindex="-1" role="dialog" aria-labelledby="createModalTitle"
+        aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+            <div class="modal-content shadow border-0">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title font-weight-bold" id="createModalTitle">
+                        <i class="fa fa-plus-circle mr-2" aria-hidden="true"></i> ${Resource.msg('heading.create.post', 'externalApi', null)}
+                    </h5>
+                    <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <form id="createPostModalForm" action="${URLUtils.url('ExternalApi-SavePost')}" method="POST" novalidate
+                    data-view-url="${URLUtils.url('ExternalApi-ViewPost')}"
+                    data-edit-url="${URLUtils.url('ExternalApi-EditPost')}"
+                    data-delete-url="${URLUtils.url('ExternalApi-DeletePost')}"
+                    data-view-label="${Resource.msg('button.action.view', 'externalApi', null)}"
+                    data-edit-label="${Resource.msg('button.action.edit', 'externalApi', null)}"
+                    data-delete-label="${Resource.msg('button.action.delete', 'externalApi', null)}">
+                    <div class="modal-body p-4">
+                        <div id="modal-form-alert-container"></div>
+
+                        <!--- Field 1: User ID --->
+                        <div class="form-group mb-3">
+                            <label for="modal-userId" class="font-weight-bold text-dark">
+                                ${Resource.msg('label.form.userid', 'externalApi', null)} <span class="text-danger">*</span>
+                            </label>
+                            <input type="number" class="form-control" id="modal-userId" name="userId"
+                                placeholder="${Resource.msg('placeholder.form.userid', 'externalApi', null)}" min="1" step="1" required>
+                            <div class="invalid-feedback" id="modal-userId-error">
+                                ${Resource.msg('error.form.userid', 'externalApi', null)}
+                            </div>
+                            <small class="form-text text-muted">${Resource.msg('help.form.userid', 'externalApi', null)}</small>
+                        </div>
+
+                        <!--- Field 2: Title --->
+                        <div class="form-group mb-3">
+                            <label for="modal-title" class="font-weight-bold text-dark">
+                                ${Resource.msg('label.form.title', 'externalApi', null)} <span class="text-danger">*</span>
+                            </label>
+                            <input type="text" class="form-control" id="modal-title" name="title"
+                                placeholder="${Resource.msg('placeholder.form.title', 'externalApi', null)}" maxlength="200" required>
+                            <div class="invalid-feedback" id="modal-title-error">
+                                ${Resource.msg('error.form.title', 'externalApi', null)}
+                            </div>
+                        </div>
+
+                        <!--- Field 3: Description / Body --->
+                        <div class="form-group mb-3">
+                            <label for="modal-body" class="font-weight-bold text-dark">
+                                ${Resource.msg('label.form.body', 'externalApi', null)} <span class="text-danger">*</span>
+                            </label>
+                            <textarea class="form-control" id="modal-body" name="body" rows="4"
+                                placeholder="${Resource.msg('placeholder.form.body', 'externalApi', null)}" required></textarea>
+                            <div class="invalid-feedback" id="modal-body-error">
+                                ${Resource.msg('error.form.body', 'externalApi', null)}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer bg-light">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">
+                            ${Resource.msg('button.form.cancel', 'externalApi', null)}
+                        </button>
+                        <button type="submit" class="btn btn-primary px-4 font-weight-bold shadow-sm" id="btn-modal-create-post">
+                            <span class="spinner-border spinner-border-sm d-none mr-1" role="status" aria-hidden="true"></span>
+                            ${Resource.msg('button.form.create', 'externalApi', null)}
+                        </button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>

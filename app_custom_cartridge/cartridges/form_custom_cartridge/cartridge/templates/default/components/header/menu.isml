@@ -19,20 +19,24 @@
                 <isloop items="${pdict.categories}" var="category">
                     <isif condition="${category.subCategories}">
                         <li class="nav-item dropdown" role="presentation">
-                            <a href="<isprint value="${category.url}" encoding="htmldoublequote"/>" id="${category.id}" class="nav-link dropdown-toggle" role="button" aria-haspopup="true" aria-expanded="false" tabindex="0">${category.name}</a>
+                            <a href="<isprint value=" ${category.url}" encoding="htmldoublequote" />"
+                            id="${category.id}" class="nav-link dropdown-toggle" role="button" aria-haspopup="true"
+                            aria-expanded="false" tabindex="0">${category.name}</a>
                             <isset name="menuItem" value="${category}" scope="page" />
                             <isinclude template="components/header/menuItem" />
                         </li>
                     <iselse/>
                         <li class="nav-item" role="presentation">
-                            <a href="<isprint value="${category.url}" encoding="htmldoublequote"/>" id="${category.id}" class="nav-link" role="link" tabindex="0">${category.name}</a>
+                            <a href="<isprint value=" ${category.url}" encoding="htmldoublequote" />"
+                            id="${category.id}" class="nav-link" role="link" tabindex="0">${category.name}</a>
                         </li>
                     </isif>
                 </isloop>
             </isif>
             <!--- Custom Posts Nav Link for Quick Access --->
             <li class="nav-item" role="presentation">
-                <a href="${URLUtils.url('ExternalApi-Show')}" id="nav-posts-link" class="nav-link font-weight-bold" role="link" tabindex="0">
+                <a href="${URLUtils.url('ExternalApi-Show')}" id="nav-posts-link" class="nav-link font-weight-bold"
+                    role="link" tabindex="0">
                     <isprint value="${Resource.msg('label.nav.posts', 'externalApi', null)}" />
                 </a>
             </li>
