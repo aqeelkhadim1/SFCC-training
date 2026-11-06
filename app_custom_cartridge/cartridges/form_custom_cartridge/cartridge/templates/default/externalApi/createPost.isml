@@ -11,7 +11,7 @@
                 <!--- Back Button Link --->
                 <div class="mb-3">
                     <a href="${URLUtils.url('ExternalApi-Show')}" class="text-decoration-none text-secondary">
-                        &lt; Back to Posts List
+                        &lt; ${Resource.msg('link.back.to.posts', 'externalApi', null)}
                     </a>
                 </div>
 
@@ -19,9 +19,9 @@
                 <div class="card shadow-sm border-0">
                     <div class="card-header bg-primary text-white py-3">
                         <h4 class="m-0 font-weight-bold">
-                            <i class="fa fa-plus-circle mr-2" aria-hidden="true"></i> Create New Post
+                            <i class="fa fa-plus-circle mr-2" aria-hidden="true"></i> ${Resource.msg('heading.create.post', 'externalApi', null)}
                         </h4>
-                        <small class="text-light">External API (POST /posts) via SFCC Service Framework</small>
+                        <small class="text-light">${Resource.msg('subheading.create.post', 'externalApi', null)}</small>
                     </div>
 
                     <div class="card-body p-4">
@@ -38,66 +38,66 @@
                             <!--- Field 1: User ID (Number, Required) --->
                             <div class="form-group mb-3">
                                 <label for="userId" class="font-weight-bold text-dark">
-                                    User ID <span class="text-danger">*</span>
+                                    ${Resource.msg('label.form.userid', 'externalApi', null)} <span class="text-danger">*</span>
                                 </label>
                                 <input type="number"
                                     class="form-control ${pdict.errors && pdict.errors.userId ? 'is-invalid' : ''}"
                                     id="userId"
                                     name="userId"
-                                    placeholder="Enter user numeric ID (e.g. 1)"
+                                    placeholder="${Resource.msg('placeholder.form.userid', 'externalApi', null)}"
                                     min="1"
                                     step="1"
                                     value="${pdict.post && pdict.post.userId ? pdict.post.userId : ''}"
                                     required>
                                 <div class="invalid-feedback" id="userId-error">
-                                    ${pdict.errors && pdict.errors.userId ? pdict.errors.userId : 'Valid positive User ID zaroori hai.'}
+                                    ${pdict.errors && pdict.errors.userId ? pdict.errors.userId : Resource.msg('error.form.userid', 'externalApi', null)}
                                 </div>
-                                <small class="form-text text-muted">Author user ki integer ID (e.g. 1 to 10).</small>
+                                <small class="form-text text-muted">${Resource.msg('help.form.userid', 'externalApi', null)}</small>
                             </div>
 
                             <!--- Field 2: Title (Text, Required) --->
                             <div class="form-group mb-3">
                                 <label for="title" class="font-weight-bold text-dark">
-                                    Post Title <span class="text-danger">*</span>
+                                    ${Resource.msg('label.form.title', 'externalApi', null)} <span class="text-danger">*</span>
                                 </label>
                                 <input type="text"
                                     class="form-control ${pdict.errors && pdict.errors.title ? 'is-invalid' : ''}"
                                     id="title"
                                     name="title"
-                                    placeholder="Enter post title"
+                                    placeholder="${Resource.msg('placeholder.form.title', 'externalApi', null)}"
                                     maxlength="200"
                                     value="${pdict.post && pdict.post.title ? pdict.post.title : ''}"
                                     required>
                                 <div class="invalid-feedback" id="title-error">
-                                    ${pdict.errors && pdict.errors.title ? pdict.errors.title : 'Post Title zaroori hai (max 200 characters).'}
+                                    ${pdict.errors && pdict.errors.title ? pdict.errors.title : Resource.msg('error.form.title', 'externalApi', null)}
                                 </div>
                             </div>
 
                             <!--- Field 3: Description / Body (Textarea, Required) --->
                             <div class="form-group mb-4">
                                 <label for="body" class="font-weight-bold text-dark">
-                                    Description / Body <span class="text-danger">*</span>
+                                    ${Resource.msg('label.form.body', 'externalApi', null)} <span class="text-danger">*</span>
                                 </label>
                                 <textarea
                                     class="form-control ${pdict.errors && pdict.errors.body ? 'is-invalid' : ''}"
                                     id="body"
                                     name="body"
                                     rows="5"
-                                    placeholder="Enter post description content..."
+                                    placeholder="${Resource.msg('placeholder.form.body', 'externalApi', null)}"
                                     required>${pdict.post && pdict.post.body ? pdict.post.body : ''}</textarea>
                                 <div class="invalid-feedback" id="body-error">
-                                    ${pdict.errors && pdict.errors.body ? pdict.errors.body : 'Post Description content zaroori hai.'}
+                                    ${pdict.errors && pdict.errors.body ? pdict.errors.body : Resource.msg('error.form.body', 'externalApi', null)}
                                 </div>
                             </div>
 
                             <!--- Form Actions --->
                             <div class="d-flex justify-content-between align-items-center pt-2 border-top">
                                 <a href="${URLUtils.url('ExternalApi-Show')}" class="btn btn-outline-secondary">
-                                    Cancel
+                                    ${Resource.msg('button.form.cancel', 'externalApi', null)}
                                 </a>
                                 <button type="submit" class="btn btn-primary px-4 font-weight-bold shadow-sm" id="btn-submit-post">
                                     <span class="spinner-border spinner-border-sm d-none mr-1" role="status" aria-hidden="true"></span>
-                                    Create Post
+                                    ${Resource.msg('button.form.create', 'externalApi', null)}
                                 </button>
                             </div>
                         </form>
