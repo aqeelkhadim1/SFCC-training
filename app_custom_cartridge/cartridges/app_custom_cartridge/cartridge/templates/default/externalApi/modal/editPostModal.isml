@@ -2,6 +2,7 @@
     <div class="modal-dialog" role="document">
         <div class="modal-content">
             <form id="edit-form" novalidate>
+                <input type="hidden" name="${pdict.csrf.tokenName}" value="${pdict.csrf.token}">
                 <div class="modal-header">
                     <h5 class="modal-title">${Resource.msg('modal.edit.title', 'externalApi', null)}</h5>
                     <button type="button" class="btn-close close" data-bs-dismiss="modal" data-dismiss="modal" aria-label="${Resource.msg('btn.close', 'externalApi', null)}"></button>
@@ -24,7 +25,7 @@
 
                     <div class="form-group mb-3">
                         <label class="form-label">${Resource.msg('label.description', 'externalApi', null)} <span class="text-danger" aria-hidden="true">${Resource.msg('symbol.required', 'externalApi', null)}</span></label>
-                        <textarea name="body" class="form-control" rows="4"></textarea>
+                        <textarea name="body" class="form-control" rows="4" minlength="10" maxlength="500"></textarea>
                         <div class="invalid-feedback"></div>
                     </div>
                 </div>

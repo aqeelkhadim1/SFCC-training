@@ -3,8 +3,9 @@
 var server = require('server');
 var URLUtils = require('dw/web/URLUtils');
 
-var helper = require('*/cartridge/scripts/helpers/externalApiHelper');
-var pagingHelper = require('*/cartridge/scripts/helpers/externalApiPaging');
+// SFCC resolves cartridge wildcard aliases at runtime.
+// @ts-ignore
+var csrfProtection = require('*/cartridge/scripts/middleware/csrf');
 
 /**
  * Default redirect routes
@@ -18,32 +19,24 @@ server.get('ExternalApi', function (req, res, next) {
  * Uses SFCC PagingModel to slice 100 posts into 10 records per page.
  * Flow: Controller -> Helper -> Service
  */
-server.get('Show', function (req, res, next) {
-    var params = helper.getPagingParams(req.querystring);
+server.get('Show', csrfProtection.generateToken, function (req, res, next) {
+    // @ts-ignore - SFCC resolves the cartridge wildcard alias at runtime.
+    var helper = require('*/cartridge/scripts/helpers/externalApiHelper');
+    var result = helper.getPagedPosts(req.querystring, 'ExternalApi-Show');
 
-    var result = helper.callApi({
-        requestType: 'GET',
-        requestURL: 'posts'
-    });
-
-    if (!result.ok || !result.data) {
+    if (!result.ok) {
         res.render('externalApi/posts', {
             error: true,
-            errorMessage: 'Service error: ' + (result.errorMessage || 'No data returned')
+            errorMessage: 'Service error: ' + result.errorMessage,
+            posts: result.posts,
+            pagination: result.pagination
         });
         return next();
     }
 
-    var pagedResult = pagingHelper.createPagingModel(
-        result.data || [],
-        params.page,
-        params.pageSize,
-        'ExternalApi-Show'
-    );
-
     res.render('externalApi/posts', {
-        posts: pagedResult.records,
-        pagination: pagedResult.pagination
+        posts: result.posts,
+        pagination: result.pagination
     });
 
     return next();
@@ -52,32 +45,32 @@ server.get('Show', function (req, res, next) {
 /**
  * Renders dedicated View More (Infinite Feed) page.
  */
-server.get('ViewMore', function (req, res, next) {
-    var params = helper.getPagingParams(req.querystring);
+server.get('ViewMore', csrfProtection.generateToken, function (req, res, next) {
+    // @ts-ignore - SFCC resolves the cartridge wildcard alias at runtime.
+    var helper = require('*/cartridge/scripts/helpers/externalApiHelper');
+    var requestedPage = Math.max(1, Math.floor(Number(req.querystring.page) || 1));
+    var pageSize = Math.floor(Number(req.querystring.pageSize) || 10);
 
-    var result = helper.callApi({
-        requestType: 'GET',
-        requestURL: 'posts'
-    });
+    // Always render the first batch. The client restores batches 2..requestedPage
+    // so a refreshed View More page remains cumulative instead of showing only
+    // the final requested batch.
+    var result = helper.getPagedPosts({ page: 1, pageSize: pageSize }, 'ExternalApi-ViewMore');
 
-    if (!result.ok || !result.data) {
+    if (!result.ok) {
         res.render('externalApi/viewMorePosts', {
             error: true,
-            errorMessage: 'Service error: ' + (result.errorMessage || 'No data returned')
+            errorMessage: 'Service error: ' + result.errorMessage,
+            posts: result.posts,
+            pagination: result.pagination,
+            restorePage: requestedPage
         });
         return next();
     }
 
-    var pagedResult = pagingHelper.createPagingModel(
-        result.data || [],
-        params.page,
-        params.pageSize,
-        'ExternalApi-ViewMore'
-    );
-
     res.render('externalApi/viewMorePosts', {
-        posts: pagedResult.records,
-        pagination: pagedResult.pagination
+        posts: result.posts,
+        pagination: result.pagination,
+        restorePage: Math.min(requestedPage, result.pagination.totalPages)
     });
 
     return next();
@@ -87,28 +80,19 @@ server.get('ViewMore', function (req, res, next) {
  * Returns posts as JSON for AJAX pagination.
  */
 server.get('GetPosts', function (req, res, next) {
-    var params = helper.getPagingParams(req.querystring);
+    // @ts-ignore - SFCC resolves the cartridge wildcard alias at runtime.
+    var helper = require('*/cartridge/scripts/helpers/externalApiHelper');
+    var result = helper.getPagedPosts(req.querystring, 'ExternalApi-GetPosts');
 
-    var result = helper.callApi({
-        requestType: 'GET',
-        requestURL: 'posts'
-    });
-
-    if (!result.ok || !result.data) {
+    if (!result.ok) {
+        res.setStatusCode(502);
         res.json({ error: 'Unable to retrieve posts' });
         return next();
     }
 
-    var pagedResult = pagingHelper.createPagingModel(
-        result.data,
-        params.page,
-        params.pageSize,
-        'ExternalApi-GetPosts'
-    );
-
     res.json({
-        posts: pagedResult.records,
-        pagination: pagedResult.pagination
+        posts: result.posts,
+        pagination: result.pagination
     });
 
     return next();
@@ -118,18 +102,17 @@ server.get('GetPosts', function (req, res, next) {
  * Retrieves single post by ID
  */
 server.get('ViewPost', function (req, res, next) {
-    var postId = req.querystring.id;
+    // @ts-ignore - SFCC resolves the cartridge wildcard alias at runtime.
+    var helper = require('*/cartridge/scripts/helpers/externalApiHelper');
+    var validation = helper.validateId(req.querystring.id);
 
-    if (!helper.isValidId(postId)) {
+    if (!validation.valid) {
         res.setStatusCode(400);
-        res.json({ error: 'Invalid post ID' });
+        res.json({ error: validation.message });
         return next();
     }
 
-    var result = helper.callApi({
-        requestType: 'GET',
-        requestURL: 'posts/' + postId
-    });
+    var result = helper.getPost(validation.id);
 
     if (!result.ok || !result.data) {
         res.setStatusCode(404);
@@ -144,7 +127,9 @@ server.get('ViewPost', function (req, res, next) {
 /**
  * Handles post creation
  */
-server.post('SavePost', function (req, res, next) {
+server.post('SavePost', csrfProtection.validateAjaxRequest, function (req, res, next) {
+    // @ts-ignore - SFCC resolves the cartridge wildcard alias at runtime.
+    var helper = require('*/cartridge/scripts/helpers/externalApiHelper');
     var form = req.form || {};
     var validation = helper.validatePost(form);
 
@@ -154,17 +139,7 @@ server.post('SavePost', function (req, res, next) {
         return next();
     }
 
-    var payload = {
-        userId: parseInt(String(form.userId), 10),
-        title: form.title,
-        body: form.body
-    };
-
-    var result = helper.callApi({
-        requestType: 'POST',
-        requestURL: 'posts',
-        payload: payload
-    });
+    var result = helper.savePost(helper.buildPostPayload(form));
 
     if (!result.ok) {
         res.setStatusCode(502);
@@ -177,41 +152,15 @@ server.post('SavePost', function (req, res, next) {
     return next();
 });
 
-/**
- * Displays edit form (Day 2)
- */
-server.get('EditPost', function (req, res, next) {
-    var postId = req.querystring.id;
-
-    if (!helper.isValidId(postId)) {
-        res.setStatusCode(400);
-        res.render('externalApi/error', { message: 'Invalid post ID' });
-        return next();
-    }
-
-    var result = helper.callApi({
-        requestType: 'GET',
-        requestURL: 'posts/' + postId
-    });
-
-    if (!result.ok || !result.data) {
-        res.setStatusCode(404);
-        res.render('externalApi/error', { message: 'Post not found' });
-        return next();
-    }
-
-    res.render('externalApi/editPost', { post: result.data });
-    return next();
-});
-
-
-server.post('UpdatePost', function (req, res, next) {
+server.post('UpdatePost', csrfProtection.validateAjaxRequest, function (req, res, next) {
+    // @ts-ignore - SFCC resolves the cartridge wildcard alias at runtime.
+    var helper = require('*/cartridge/scripts/helpers/externalApiHelper');
     var form = req.form || {};
-    var postId = form.id || req.querystring.id;
+    var idValidation = helper.validateId(form.id || req.querystring.id);
 
-    if (!helper.isValidId(postId)) {
+    if (!idValidation.valid) {
         res.setStatusCode(400);
-        res.json({ error: 'Invalid post ID' });
+        res.json({ error: idValidation.message });
         return next();
     }
 
@@ -223,17 +172,7 @@ server.post('UpdatePost', function (req, res, next) {
         return next();
     }
 
-    var payload = {
-        userId: parseInt(String(form.userId), 10),
-        title: form.title,
-        body: form.body
-    };
-
-    var result = helper.callApi({
-        requestType: 'PUT',
-        requestURL: 'posts/' + postId,
-        payload: payload
-    });
+    var result = helper.updatePost(idValidation.id, helper.buildPostPayload(form));
 
     if (!result.ok) {
         res.setStatusCode(502);
@@ -247,20 +186,18 @@ server.post('UpdatePost', function (req, res, next) {
 /**
  * Handles delete post
  */
-server.post('DeletePost', function (req, res, next) {
-    var form = req.form || {};
-    var postId = form.id || req.querystring.id;
+server.post('DeletePost', csrfProtection.validateAjaxRequest, function (req, res, next) {
+    // @ts-ignore - SFCC resolves the cartridge wildcard alias at runtime.
+    var helper = require('*/cartridge/scripts/helpers/externalApiHelper');
+    var validation = helper.validateId((req.form || {}).id || req.querystring.id);
 
-    if (!helper.isValidId(postId)) {
+    if (!validation.valid) {
         res.setStatusCode(400);
-        res.json({ error: 'Invalid post ID' });
+        res.json({ error: validation.message });
         return next();
     }
 
-    var result = helper.callApi({
-        requestType: 'DELETE',
-        requestURL: 'posts/' + postId
-    });
+    var result = helper.deletePost(validation.id);
 
     if (!result.ok) {
         res.setStatusCode(502);

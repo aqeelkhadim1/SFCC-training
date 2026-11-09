@@ -31,7 +31,9 @@
             data-view-url="${URLUtils.url('ExternalApi-ViewPost')}"
             data-save-url="${URLUtils.url('ExternalApi-SavePost')}"
             data-update-url="${URLUtils.url('ExternalApi-UpdatePost')}"
-            data-delete-url="${URLUtils.url('ExternalApi-DeletePost')}">
+            data-delete-url="${URLUtils.url('ExternalApi-DeletePost')}"
+            data-csrf-name="${pdict.csrf.tokenName}"
+            data-csrf-token="${pdict.csrf.token}">
         </div>
 
         <div class="card">

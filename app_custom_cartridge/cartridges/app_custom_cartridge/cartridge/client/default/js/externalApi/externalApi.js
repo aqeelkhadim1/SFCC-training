@@ -1,554 +1,291 @@
-/* global $, bootstrap */
+/* global $ */
 'use strict';
 
 var initialized = false;
+var PAGE_SIZE = 10;
+var FIELDS = ['id', 'userId', 'title', 'body'];
 
 function init() {
-    if (initialized) {
-        return;
-    }
+    var $config = $('#posts-config');
+    if (initialized || !$config.length) return;
     initialized = true;
 
-    var $config = $('#posts-config');
     var $table = $('#posts-table-body');
-
-    var urls = {
-        get: $config.data('get-url'),
-        view: $config.data('view-url'),
-        save: $config.data('save-url'),
-        update: $config.data('update-url'),
-        delete: $config.data('delete-url')
-    };
-
-    var page = parseInt($('#page-info').text().match(/\d+/), 10) || 1;
-    var selectedId;
+    var $count = $('#post-count');
+    var $more = $('#btn-view-more');
+    var urls = {};
     var localPosts = {};
+    var selectedId;
 
-    function getPostFromRow($row) {
-        var $cells = $row.children('td');
-        return {
-            id: $row.attr('data-id') || $cells.eq(0).text().trim(),
-            userId: $cells.eq(1).text().trim(),
-            title: $cells.eq(2).text().trim(),
-            body: $cells.eq(3).text().trim()
-        };
-    }
-
-    // Cross-version Modal Open (Supports Bootstrap 5, Bootstrap 4, and Fallback)
-    function openModal(modalSelector) {
-        var $modal = $(modalSelector);
-        if (!$modal.length) return;
-
-        var modalEl = $modal[0];
-        if (window.bootstrap && window.bootstrap.Modal) {
-            var bsModal = window.bootstrap.Modal.getOrCreateInstance(modalEl);
-            bsModal.show();
-        } else if (typeof $modal.modal === 'function') {
-            $modal.modal('show');
-        } else {
-            $modal.addClass('show').css({ display: 'block' });
-            if (!$('.modal-backdrop').length) {
-                $('<div class="modal-backdrop fade show"></div>').appendTo(document.body);
-            }
-            $('body').addClass('modal-open');
-        }
-    }
-
-    // Cross-version Modal Close
-    function closeModal(modalSelector) {
-        var $modal = $(modalSelector);
-        if (!$modal.length) return;
-
-        var modalEl = $modal[0];
-        if (window.bootstrap && window.bootstrap.Modal) {
-            var bsModal = window.bootstrap.Modal.getInstance(modalEl);
-            if (bsModal) {
-                bsModal.hide();
-            }
-        }
-        if (typeof $modal.modal === 'function') {
-            $modal.modal('hide');
-        }
-        $modal.removeClass('show').css({ display: 'none' });
-        $('.modal-backdrop').remove();
-        $('body').removeClass('modal-open').css({ overflow: '', 'padding-right': '' });
-    }
-
-    // Modal Triggers
-    $(document).on('click', '.js-create-post, [data-toggle="modal"], [data-bs-toggle="modal"]', function (e) {
-        e.preventDefault();
-        var target = $(this).attr('data-bs-target') || $(this).attr('data-target') || $(this).data('bs-target') || $(this).data('target');
-        if (target) {
-            openModal(target);
-        }
+    ['get', 'view', 'save', 'update', 'delete'].forEach(function (key) {
+        urls[key] = $config.data(key + '-url');
     });
 
-    $(document).on('click', '.btn-close, .close, [data-dismiss="modal"], [data-bs-dismiss="modal"]', function (e) {
-        e.preventDefault();
-        var $modal = $(this).closest('.modal');
-        if ($modal.length) {
-            closeModal('#' + $modal.attr('id'));
-        }
-    });
-
-    // Reusable AJAX request
-    function request(url, method, data, callback) {
-        $.ajax({
-            url: url,
-            type: method,
-            data: data,
-            dataType: 'json'
-        }).done(callback).fail(function (xhr) {
-            var error = xhr.responseJSON && xhr.responseJSON.error;
-            showMessage(error || 'Request failed.', 'danger');
-        });
+    function api(url, method, data) {
+        return $.ajax({ url: url, type: method || 'GET', data: data || {}, dataType: 'json' });
     }
 
-    // Reusable alert message (auto-dismisses all messages after 2.5 seconds)
-    function showMessage(message, type) {
-        var $alert = $('<div>').addClass('alert alert-' + type)
-            .text(message)
+    function message(text, type) {
+        var $alert = $('<div>').addClass('alert alert-' + type).text(text)
             .appendTo($('#api-alert-container').empty());
-
         setTimeout(function () {
-            $alert.fadeOut(500, function () {
-                $(this).remove();
-            });
+            $alert.fadeOut(500, function () { $(this).remove(); });
         }, 2500);
     }
 
-    function setFieldError($field, message) {
-        $field.addClass('is-invalid');
-        var $feedback = $field.siblings('.invalid-feedback');
-        if (!$feedback.length) {
-            $feedback = $field.closest('.form-group, .mb-3').find('.invalid-feedback');
-        }
-        $feedback.text(message).addClass('d-block').css('display', 'block').show();
+    function requestError(xhr, fallback) {
+        message((xhr.responseJSON || {}).error || fallback || 'Request failed.', 'danger');
     }
 
-    function clearFieldError($field) {
-        $field.removeClass('is-invalid');
-        var $feedback = $field.siblings('.invalid-feedback');
-        if (!$feedback.length) {
-            $feedback = $field.closest('.form-group, .mb-3').find('.invalid-feedback');
+    function modal(selector, show) {
+        var $modal = $(selector);
+        var element = $modal[0];
+        if (!element) return;
+
+        if (window.bootstrap && window.bootstrap.Modal) {
+            var instance = window.bootstrap.Modal.getOrCreateInstance(element);
+            if (show) instance.show(); else instance.hide();
+        } else if (typeof $modal.modal === 'function') {
+            $modal.modal(show ? 'show' : 'hide');
+        } else {
+            $modal.toggleClass('show', show).css('display', show ? 'block' : 'none');
+            $('.modal-backdrop').remove();
+            $('body').toggleClass('modal-open', show);
+            if (show) $('<div class="modal-backdrop fade show"></div>').appendTo(document.body);
         }
-        $feedback.text('').removeClass('d-block').css('display', 'none').hide();
     }
 
-    // Frontend Form Validation (User ID positive integer, Title & Description non-empty)
-    function validateForm($form) {
-        var isValid = true;
+    function feedback($field) {
+        var $feedback = $field.siblings('.invalid-feedback');
+        return $feedback.length ? $feedback : $field.closest('.form-group, .mb-3').find('.invalid-feedback');
+    }
+
+    function fieldError($field, text) {
+        $field.toggleClass('is-invalid', !!text);
+        feedback($field).text(text || '').toggleClass('d-block', !!text).toggle(!!text);
+    }
+
+    function validate($form) {
         var $userId = $form.find('[name="userId"]');
         var $title = $form.find('[name="title"]');
         var $body = $form.find('[name="body"]');
+        var userId = $.trim($userId.val());
+        var body = $.trim($body.val());
+        var valid = true;
 
-        clearFieldError($userId);
-        clearFieldError($title);
-        clearFieldError($body);
-
-        // 1. User ID validation: required & must be a positive integer
-        var rawUserId = $.trim($userId.val());
-        var numUserId = Number(rawUserId);
-        if (!rawUserId) {
-            setFieldError($userId, 'User ID is required.');
-            isValid = false;
-        } else if (!Number.isInteger(numUserId) || numUserId <= 0) {
-            setFieldError($userId, 'User ID must be a valid positive integer.');
-            isValid = false;
+        $form.find('input, textarea').each(function () { fieldError($(this)); });
+        if (!/^[1-9]\d*$/.test(userId)) {
+            fieldError($userId, userId ? 'User ID must be a valid positive integer.' : 'User ID is required.');
+            valid = false;
         }
-
-        // 2. Title validation: required
-        var titleVal = $.trim($title.val());
-        if (!titleVal) {
-            setFieldError($title, 'Title is required.');
-            isValid = false;
+        if (!$.trim($title.val())) {
+            fieldError($title, 'Title is required.');
+            valid = false;
         }
-
-        // 3. Description (body) validation: required
-        var bodyVal = $.trim($body.val());
-        if (!bodyVal) {
-            setFieldError($body, 'Description is required.');
-            isValid = false;
+        if (!body || body.length < 10 || body.length > 500) {
+            fieldError($body, !body ? 'Description is required.' : body.length < 10
+                ? 'Description must be at least 10 characters.'
+                : 'Description must not exceed 500 characters.');
+            valid = false;
         }
-
-        return isValid;
+        return valid;
     }
 
-    // Create a table row element with clean icon buttons
-    function createRow(post) {
+    function formPost($form) {
+        var post = {};
+        FIELDS.forEach(function (key) { post[key] = $form.find('[name="' + key + '"]').val(); });
+        return post;
+    }
+
+    function rowPost($row) {
+        var post = {};
+        var $cells = $row.children('td');
+        FIELDS.forEach(function (key, index) { post[key] = $cells.eq(index).text().trim(); });
+        post.id = $row.data('id') || post.id;
+        return post;
+    }
+
+    function row(post) {
         var $row = $('<tr>').attr('data-id', post.id);
-
-        [post.id, post.userId, post.title, post.body].forEach(function (value) {
-            $row.append($('<td>').text(value));
+        var $buttons = $('<div>').addClass('action-btn-group');
+        FIELDS.forEach(function (key) { $row.append($('<td>').text(post[key])); });
+        [
+            ['view', 'info', 'eye'],
+            ['edit', 'secondary', 'pencil'],
+            ['delete', 'danger', 'trash']
+        ].forEach(function (action) {
+            var label = action[0].charAt(0).toUpperCase() + action[0].slice(1);
+            $('<button>', { type: 'button', title: label, 'aria-label': label })
+                .attr('data-id', post.id)
+                .addClass('btn btn-sm btn-outline-' + action[1] + ' btn-action js-' + action[0])
+                .append($('<i>').addClass('fa fa-' + action[2]).attr('aria-hidden', 'true'))
+                .appendTo($buttons);
         });
-
-        var $actions = $('<td>').addClass('actions-cell');
-        var $btnGroup = $('<div>').addClass('action-btn-group');
-
-        var buttons = [
-            { type: 'view', cls: 'outline-info', icon: 'eye', title: 'View' },
-            { type: 'edit', cls: 'outline-secondary', icon: 'pencil', title: 'Edit' },
-            { type: 'delete', cls: 'outline-danger', icon: 'trash', title: 'Delete' }
-        ];
-
-        buttons.forEach(function (btn) {
-            $('<button>')
-                .attr({
-                    type: 'button',
-                    'data-id': post.id,
-                    title: btn.title,
-                    'aria-label': btn.title
-                })
-                .addClass('btn btn-sm btn-' + btn.cls + ' btn-action js-' + btn.type)
-                .append($('<i>').addClass('fa fa-' + btn.icon))
-                .appendTo($btnGroup);
-        });
-
-        $actions.append($btnGroup);
-        $row.append($actions);
-        return $row;
+        return $row.append($('<td>').addClass('actions-cell').append($buttons));
     }
 
-    // Render posts safely
-    function renderPosts(posts) {
-        $table.empty();
-
-        $.each(posts, function (index, post) {
-            var $row = createRow(post);
-            $table.append($row);
-        });
+    function findRow(id) {
+        return $table.find('tr[data-id="' + id + '"]');
     }
 
-    // Update pagination using controller response
-    function updatePagination(pagination) {
-        page = pagination.page;
-
-        $('#post-count').text(pagination.totalCount);
-        $('#page-info').text('Page ' + page + ' of ' + pagination.totalPages);
-
-        $('#prev-page')
-            .data('url', pagination.previousUrl || '')
-            .prop('disabled', !pagination.hasPrevious);
-
-        $('#next-page')
-            .data('url', pagination.nextUrl || '')
-            .prop('disabled', !pagination.hasNext);
+    function render(posts, append) {
+        if (!append) $table.empty();
+        $.each(posts, function (index, post) { $table.append(row(post)); });
     }
 
-    // Load posts
-    function loadPosts(url, pageNumber) {
-        var targetUrl = (url || urls.get).replace('ExternalApi-Show', 'ExternalApi-GetPosts');
-        request(targetUrl, 'GET', url ? null : { page: pageNumber || page }, function (response) {
-            if (response.error) {
-                showMessage(response.error, 'danger');
-                return;
-            }
-
-            renderPosts(response.posts);
-            updatePagination(response.pagination);
-        });
+    function update(post) {
+        var $row = findRow(post.id);
+        FIELDS.forEach(function (key, index) { $row.children('td').eq(index).text(post[key]); });
+        $row.addClass('table-info');
+        setTimeout(function () { $row.removeClass('table-info'); }, 2500);
+        localPosts[post.id] = post;
+        modal('#editPostModal', false);
+        message('Post updated successfully.', 'success');
     }
 
-    // Get one post with fallback
-    function getPost(id, successCb, errorCb) {
-        $.ajax({
-            url: urls.view,
-            type: 'GET',
-            data: { id: id },
-            dataType: 'json'
-        }).done(function (data) {
-            if (successCb) {
-                successCb(data);
-            }
-        }).fail(function (xhr) {
-            if (errorCb) {
-                errorCb(xhr);
-            } else {
-                var error = xhr.responseJSON && xhr.responseJSON.error;
-                showMessage(error || 'Request failed.', 'danger');
-            }
-        });
+    function changeCount(change) {
+        $count.text(Math.max(0, (parseInt($count.text(), 10) || 0) + change));
     }
 
-    // View post
-    $(document).on('click', '.js-view', function () {
-        var id = $(this).data('id');
-        var $row = $(this).closest('tr');
-
-        function showView(post) {
-            ['id', 'userId', 'title', 'body'].forEach(function (key) {
-                $('#view-' + key).text(post[key]);
-            });
-            openModal('#viewPostModal');
-        }
-
-        if (localPosts[id]) {
-            showView(localPosts[id]);
-            return;
-        }
-
-        getPost(id, function (post) {
-            showView(post);
-        }, function () {
-            showView(getPostFromRow($row));
-        });
-    });
-
-    // Edit post
-    $(document).on('click', '.js-edit', function () {
-        var id = $(this).data('id');
-        var $row = $(this).closest('tr');
-
-        function showEdit(post) {
-            var $form = $('#edit-form');
-            clearFieldError($form.find('[name="userId"]'));
-            clearFieldError($form.find('[name="title"]'));
-            clearFieldError($form.find('[name="body"]'));
-
-            Object.keys(post).forEach(function (key) {
-                $form.find('[name="' + key + '"]').val(post[key]);
-            });
-
-            openModal('#editPostModal');
-        }
-
-        if (localPosts[id]) {
-            showEdit(localPosts[id]);
-            return;
-        }
-
-        getPost(id, function (post) {
-            showEdit(post);
-        }, function () {
-            showEdit(getPostFromRow($row));
-        });
-    });
-
-    // Live validation error clearing on input
-    $(document).on('input change', 'input, textarea', function () {
-        clearFieldError($(this));
-    });
-
-    // Clean up create modal on open
-    $(document).on('show.bs.modal', '#createPostModal', function () {
+    $('.js-create-post').on('click', function (event) {
+        event.preventDefault();
         var $form = $('#create-form');
         $form[0].reset();
-        clearFieldError($form.find('[name="userId"]'));
-        clearFieldError($form.find('[name="title"]'));
-        clearFieldError($form.find('[name="body"]'));
+        $form.find('input, textarea').each(function () { fieldError($(this)); });
+        modal('#createPostModal', true);
     });
 
-    // Handle Create Post Submission (Instant UI Reflection)
-    $('#create-form').on('submit', function (event) {
-        event.preventDefault();
-
-        if (!validateForm($(this))) {
-            return;
-        }
-
-        var formData = $(this).serialize();
-        var formObj = {
-            userId: $(this).find('[name="userId"]').val(),
-            title: $(this).find('[name="title"]').val(),
-            body: $(this).find('[name="body"]').val()
-        };
-
-        request(urls.save, 'POST', formData, function (response) {
-            closeModal('#createPostModal');
-            $('#create-form')[0].reset();
-            showMessage('Post created successfully.', 'success');
-
-            // Immediate UI Reflection: prepend created post into the table
-            var newPost = {
-                id: (response && response.id) || 101,
-                userId: (response && response.userId) || formObj.userId,
-                title: (response && response.title) || formObj.title,
-                body: (response && response.body) || formObj.body
-            };
-
-            localPosts[newPost.id] = newPost;
-
-            var $newRow = createRow(newPost);
-            $newRow.addClass('table-success');
-            $table.prepend($newRow);
-            setTimeout(function () {
-                $newRow.removeClass('table-success');
-            }, 2500);
-
-            var currentCount = parseInt($('#post-count').text(), 10) || 0;
-            $('#post-count').text(currentCount + 1);
+    $(document)
+        .on('click', '.btn-close, [data-dismiss="modal"], [data-bs-dismiss="modal"]', function () {
+            modal('#' + $(this).closest('.modal').attr('id'), false);
+        })
+        .on('input change', '#create-form input, #create-form textarea, #edit-form input, #edit-form textarea', function () {
+            fieldError($(this));
         });
-    });
 
-    // Handle Edit Post Submission (Instant UI Reflection)
-    $('#edit-form').on('submit', function (event) {
-        event.preventDefault();
-
-        if (!validateForm($(this))) {
-            return;
-        }
-
-        var formData = $(this).serialize();
-        var formObj = {
-            id: $(this).find('[name="id"]').val(),
-            userId: $(this).find('[name="userId"]').val(),
-            title: $(this).find('[name="title"]').val(),
-            body: $(this).find('[name="body"]').val()
-        };
-
-        function applyUpdate(updated) {
-            closeModal('#editPostModal');
-            showMessage('Post updated successfully.', 'success');
-
-            localPosts[updated.id] = updated;
-
-            var $row = $table.find('tr[data-id="' + updated.id + '"]');
-            if (!$row.length) {
-                $row = $table.find('button[data-id="' + updated.id + '"]').closest('tr');
-            }
-
-            if ($row.length) {
-                var $tds = $row.find('td');
-                $tds.eq(0).text(updated.id);
-                $tds.eq(1).text(updated.userId);
-                $tds.eq(2).text(updated.title);
-                $tds.eq(3).text(updated.body);
-
-                $row.addClass('table-info');
-                setTimeout(function () {
-                    $row.removeClass('table-info');
-                }, 2500);
-            }
-        }
-
-        if (localPosts[formObj.id] || parseInt(formObj.id, 10) > 100) {
-            $.ajax({
-                url: urls.update,
-                type: 'POST',
-                data: formData,
-                dataType: 'json'
-            }).always(function () {
-                applyUpdate(formObj);
-            });
-            return;
-        }
-
-        $.ajax({
-            url: urls.update,
-            type: 'POST',
-            data: formData,
-            dataType: 'json'
-        }).done(function (response) {
-            applyUpdate(response || formObj);
-        }).fail(function (xhr) {
-            if (xhr.status === 404 || xhr.status === 500) {
-                applyUpdate(formObj);
+    $table.on('click', '.js-view, .js-edit', function () {
+        var $button = $(this);
+        var id = $button.data('id');
+        var done = function (post) {
+            if ($button.hasClass('js-edit')) {
+                FIELDS.forEach(function (key) { $('#edit-form [name="' + key + '"]').val(post[key]); });
+                modal('#editPostModal', true);
             } else {
-                var error = xhr.responseJSON && xhr.responseJSON.error;
-                showMessage(error || 'Failed to update post.', 'danger');
+                FIELDS.forEach(function (key) { $('#view-' + key).text(post[key]); });
+                modal('#viewPostModal', true);
             }
-        });
+        };
+
+        if (localPosts[id]) done(localPosts[id]);
+        else api(urls.view, 'GET', { id: id }).done(done).fail(function () { done(rowPost($button.closest('tr'))); });
     });
 
-    // Delete post - open confirmation modal
-    $(document).on('click', '.js-delete', function () {
+    $table.on('click', '.js-delete', function () {
         selectedId = $(this).data('id');
         $('#delete-id').val(selectedId);
-        openModal('#deletePostModal');
+        modal('#deletePostModal', true);
     });
 
-    // Confirm Delete (Instant UI Reflection)
-    $('#confirm-delete').on('click', function () {
-        var idToDelete = selectedId;
-
-        function applyDelete() {
-            closeModal('#deletePostModal');
-            showMessage('Post deleted successfully.', 'success');
-            delete localPosts[idToDelete];
-
-            var $row = $table.find('tr[data-id="' + idToDelete + '"]');
-            if (!$row.length) {
-                $row = $table.find('button[data-id="' + idToDelete + '"]').closest('tr');
-            }
-
-            if ($row.length) {
-                $row.fadeOut(400, function () {
-                    $(this).remove();
-                    var currentCount = parseInt($('#post-count').text(), 10) || 0;
-                    if (currentCount > 0) {
-                        $('#post-count').text(currentCount - 1);
-                    }
-                });
-            }
-        }
-
-        $.ajax({
-            url: urls.delete,
-            type: 'POST',
-            data: { id: idToDelete },
-            dataType: 'json'
+    $(document).on('submit.externalApi', '#create-form', function (event) {
+        event.preventDefault();
+        event.stopPropagation();
+        var $form = $(this);
+        if (!validate($form)) return;
+        var submitted = formPost($form);
+        var $submit = $form.find('[type="submit"]');
+        var submitText = $submit.text();
+        $submit.prop('disabled', true).text('Saving...');
+        api(urls.save, 'POST', $form.serialize()).done(function (response) {
+            var post = $.extend({}, submitted, response || {});
+            post.id = post.id || 101;
+            localPosts[post.id] = post;
+            $table.prepend(row(post));
+            changeCount(1);
+            modal('#createPostModal', false);
+            message('Post created successfully.', 'success');
+        }).fail(function (xhr) {
+            requestError(xhr, 'Unable to create post.');
         }).always(function () {
-            applyDelete();
+            $submit.prop('disabled', false).text(submitText);
         });
     });
 
-    // Use controller-provided URLs for Previous / Next
+    $(document).on('submit.externalApi', '#edit-form', function (event) {
+        event.preventDefault();
+        event.stopPropagation();
+        var $form = $(this);
+        if (!validate($form)) return;
+        var post = formPost($form);
+        if (localPosts[post.id]) update(post);
+        else api(urls.update, 'POST', $form.serialize()).done(function (response) {
+            update($.extend({}, post, response || {}));
+        }).fail(function (xhr) { requestError(xhr, 'Unable to update post.'); });
+    });
+
+    $('#confirm-delete').on('click', function () {
+        function remove() {
+            delete localPosts[selectedId];
+            findRow(selectedId).fadeOut(400, function () { $(this).remove(); changeCount(-1); });
+            modal('#deletePostModal', false);
+            message('Post deleted successfully.', 'success');
+        }
+        if (localPosts[selectedId]) return remove();
+        var data = { id: selectedId };
+        data[$config.data('csrf-name')] = $config.data('csrf-token');
+        api(urls.delete, 'POST', data).done(remove)
+            .fail(function (xhr) { requestError(xhr, 'Unable to delete post.'); });
+    });
+
     $('#prev-page, #next-page').on('click', function () {
         var url = $(this).data('url');
-
-        if (url) {
-            loadPosts(url);
-        }
+        if (!url) return;
+        api(url.replace('ExternalApi-Show', 'ExternalApi-GetPosts')).done(function (response) {
+            var paging = response.pagination;
+            render(response.posts);
+            $count.text(paging.totalCount);
+            $('#page-info').text('Page ' + paging.page + ' of ' + paging.totalPages);
+            $('#prev-page').data('url', paging.previousUrl || '').prop('disabled', !paging.hasPrevious);
+            $('#next-page').data('url', paging.nextUrl || '').prop('disabled', !paging.hasNext);
+        }).fail(requestError);
     });
 
-    // Progressive Loading: View More Posts (Appends next 10 posts on demand)
-    $('#btn-view-more').on('click', function () {
-        var $btn = $(this);
-        var nextPage = parseInt($btn.data('next-page'), 10) || 2;
-        var totalPages = parseInt($btn.data('total-pages'), 10) || 10;
-        var loadingText = $btn.data('loading-text') || 'Loading...';
-        var originalHtml = $btn.html();
-
-        $btn.prop('disabled', true).html('<i class="fa fa-spinner fa-spin me-2" aria-hidden="true"></i>' + loadingText);
-
-        $.ajax({
-            url: urls.get,
-            type: 'GET',
-            data: { page: nextPage, pageSize: 10 },
-            dataType: 'json'
-        }).done(function (response) {
-            if (response.error) {
-                showMessage(response.error, 'danger');
-                return;
+    function loadMore(page, persist) {
+        var html = $more.html();
+        $more.prop('disabled', true).text($more.data('loading-text') || 'Loading...');
+        return api(urls.get, 'GET', { page: page, pageSize: PAGE_SIZE }).done(function (response) {
+            var posts = response.posts || [];
+            render(posts, true);
+            var loaded = $table.children('tr').length;
+            $('#loaded-count').text(loaded);
+            $more.data('next-page', page + 1);
+            if (persist && window.history && window.history.replaceState) {
+                var currentUrl = new URL(window.location.href);
+                currentUrl.searchParams.set('page', page);
+                currentUrl.searchParams.set('pageSize', PAGE_SIZE);
+                window.history.replaceState({}, '', currentUrl.toString());
             }
-
-            if (response.posts && response.posts.length > 0) {
-                $.each(response.posts, function (index, post) {
-                    var $row = createRow(post);
-                    $table.append($row);
-                });
-
-                var totalLoaded = $table.children('tr').length;
-                $('#loaded-count').text(totalLoaded);
-
-                nextPage += 1;
-                $btn.data('next-page', nextPage);
-
-                if (nextPage > totalPages || totalLoaded >= response.pagination.totalCount) {
-                    $btn.addClass('d-none').hide();
-                    $('#all-loaded-msg').removeClass('d-none').show();
-                }
-            } else {
-                $btn.addClass('d-none').hide();
+            if (!posts.length || !response.pagination.hasNext || loaded >= response.pagination.totalCount) {
+                $more.hide();
                 $('#all-loaded-msg').removeClass('d-none').show();
             }
-        }).fail(function (xhr) {
-            var error = xhr.responseJSON && xhr.responseJSON.error;
-            showMessage(error || 'Request failed.', 'danger');
-        }).always(function () {
-            $btn.prop('disabled', false).html(originalHtml);
-        });
-    });
+        }).fail(requestError).always(function () { $more.prop('disabled', false).html(html); });
+    }
+
+    $more.on('click', function () { loadMore(parseInt($more.data('next-page'), 10) || 2, true); });
+
+    var restorePage = parseInt($config.data('restore-page'), 10) || 1;
+    var restore = 2;
+    function restoreNext() {
+        if (restore > restorePage) return;
+        loadMore(restore, false).done(function () { restore += 1; restoreNext(); });
+    }
+    restoreNext();
+
+    if ($more.length && 'IntersectionObserver' in window) {
+        new IntersectionObserver(function (entries) {
+            if (entries[0].isIntersecting && !$more.prop('disabled') && $more.is(':visible')) $more.trigger('click');
+        }, { rootMargin: '0px 0px 200px 0px', threshold: 0.01 }).observe($more[0]);
+    }
 }
 
 module.exports = init;

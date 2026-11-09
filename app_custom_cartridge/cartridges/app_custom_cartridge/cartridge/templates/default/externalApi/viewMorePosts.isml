@@ -36,7 +36,10 @@
             data-view-url="${URLUtils.url('ExternalApi-ViewPost')}"
             data-save-url="${URLUtils.url('ExternalApi-SavePost')}"
             data-update-url="${URLUtils.url('ExternalApi-UpdatePost')}"
-            data-delete-url="${URLUtils.url('ExternalApi-DeletePost')}">
+            data-delete-url="${URLUtils.url('ExternalApi-DeletePost')}"
+            data-restore-page="${pdict.restorePage || 1}"
+            data-csrf-name="${pdict.csrf.tokenName}"
+            data-csrf-token="${pdict.csrf.token}">
         </div>
 
         <div class="card">
@@ -103,11 +106,10 @@
         </div>
 
         <div class="text-center my-4">
-            <button type="button" id="btn-view-more" class="btn btn-primary px-4 py-2 shadow-sm"
+            <button type="button" id="btn-view-more" class="btn btn-primary btn-sm px-3 py-1 shadow-sm"
                 data-next-page="2"
                 data-total-pages="${pdict.pagination.totalPages}"
                 data-loading-text="${Resource.msg('btn.loading', 'externalApi', null)}">
-                <i class="fa fa-arrow-down me-2" aria-hidden="true"></i>
                 <span>${Resource.msg('btn.view.more', 'externalApi', null)}</span>
             </button>
             <div id="all-loaded-msg" class="text-muted mt-2 d-none">
@@ -124,4 +126,3 @@
     <isinclude template="externalApi/modal/deletePostModal" />
 
 </isdecorate>
-
