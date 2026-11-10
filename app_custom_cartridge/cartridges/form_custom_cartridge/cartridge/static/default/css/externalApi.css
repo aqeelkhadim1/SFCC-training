@@ -57,11 +57,11 @@
   border-width: 0.15em;
 }
 
-#deleteConfirmModal .modal-content {
+#postActionModal .modal-content {
   border-radius: 8px;
   border: none;
 }
-#deleteConfirmModal .modal-header {
+#postActionModal .modal-header {
   border-top-left-radius: 8px;
   border-top-right-radius: 8px;
 }

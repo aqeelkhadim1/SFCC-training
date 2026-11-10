@@ -1,0 +1,93 @@
+<!--- Single Reusable Bootstrap Modal for Create, Edit & Delete Post Actions (Varying Modal Content) --->
+<div class="modal fade" id="postActionModal" tabindex="-1" role="dialog" aria-labelledby="postActionModalTitle"
+    aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+        <div class="modal-content shadow border-0">
+            <div class="modal-header bg-primary text-white" id="post-modal-header">
+                <h5 class="modal-title font-weight-bold d-flex align-items-center" id="postActionModalTitle">
+                    <i class="fa fa-plus-circle mr-2" id="post-modal-icon" aria-hidden="true"></i>
+                    <span id="post-modal-title-text">${Resource.msg('heading.create.post', 'externalApi', null)}</span>
+                    <span id="post-modal-badge" class="badge bg-dark text-white ml-2 d-none"></span>
+                </h5>
+                <button type="button" id="post-modal-close-btn" class="btn-close btn-close-white"
+                    data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="postActionModalForm" action="" method="POST" novalidate>
+                <input type="hidden" id="modal-action-mode" name="mode" value="" />
+                <input type="hidden" id="modal-post-id" name="id" value="" />
+                <div class="modal-body p-4">
+                    <div id="modal-form-alert-container"></div>
+
+                    <!--- Mode: Create & Edit Form Fields --->
+                    <div id="modal-form-fields">
+                        <div class="form-group mb-3">
+                            <label for="modal-userId" class="font-weight-bold text-dark">
+                                ${Resource.msg('label.form.userid', 'externalApi', null)} <span
+                                    class="text-danger">*</span>
+                            </label>
+                            <input type="number" class="form-control" id="modal-userId" name="userId"
+                                placeholder="${Resource.msg('placeholder.form.userid', 'externalApi', null)}" min="1"
+                                step="1" required="required" />
+                            <div class="invalid-feedback" id="modal-userId-error">
+                                ${Resource.msg('error.form.userid', 'externalApi', null)}
+                            </div>
+                            <small class="form-text text-muted">${Resource.msg('help.form.userid', 'externalApi', null)}</small>
+                        </div>
+
+                        <div class="form-group mb-3">
+                            <label for="modal-title" class="font-weight-bold text-dark">
+                                ${Resource.msg('label.form.title', 'externalApi', null)} <span
+                                    class="text-danger">*</span>
+                            </label>
+                            <input type="text" class="form-control" id="modal-title" name="title"
+                                placeholder="${Resource.msg('placeholder.form.title', 'externalApi', null)}"
+                                maxlength="200" required="required" />
+                            <div class="invalid-feedback" id="modal-title-error">
+                                ${Resource.msg('error.form.title', 'externalApi', null)}
+                            </div>
+                        </div>
+
+                        <div class="form-group mb-3">
+                            <label for="modal-body" class="font-weight-bold text-dark">
+                                ${Resource.msg('label.form.body', 'externalApi', null)} <span
+                                    class="text-danger">*</span>
+                            </label>
+                            <textarea class="form-control" id="modal-body" name="body" rows="4"
+                                placeholder="${Resource.msg('placeholder.form.body', 'externalApi', null)}"
+                                required="required"></textarea>
+                            <div class="invalid-feedback" id="modal-body-error">
+                                ${Resource.msg('error.form.body', 'externalApi', null)}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!--- Mode: Delete Confirmation Preview --->
+                    <div id="modal-delete-preview" class="d-none">
+                        <p class="mb-2">${Resource.msg('modal.delete.confirm', 'externalApi', null)}</p>
+                        <div class="card bg-light p-3 border">
+                            <p class="mb-1">
+                                <strong>${Resource.msg('modal.delete.label.id', 'externalApi', null)}</strong>
+                                <span id="delete-preview-id" class="badge bg-secondary text-white"></span>
+                            </p>
+                            <p class="mb-0 text-muted">
+                                <strong>${Resource.msg('modal.delete.label.title', 'externalApi', null)}</strong>
+                                <span id="delete-preview-title" class="font-italic"></span>
+                            </p>
+                        </div>
+                        <small class="text-danger mt-2 d-block">${Resource.msg('modal.delete.note', 'externalApi', null)}</small>
+                    </div>
+                </div>
+                <div class="modal-footer bg-light">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        ${Resource.msg('button.form.cancel', 'externalApi', null)}
+                    </button>
+                    <button type="submit" class="btn btn-primary px-4 font-weight-bold shadow-sm" id="btn-modal-submit">
+                        <span class="spinner-border spinner-border-sm d-none mr-1" role="status"
+                            aria-hidden="true"></span>
+                        <span id="btn-modal-submit-text">${Resource.msg('button.form.create', 'externalApi', null)}</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

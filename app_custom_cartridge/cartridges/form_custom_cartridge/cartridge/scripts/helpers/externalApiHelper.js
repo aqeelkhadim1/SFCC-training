@@ -4,14 +4,66 @@
 
 /**
  * externalApiHelper.js
- * External REST API ke liye Business Logic, Validation, Native PagingModel aur Service Orchestration.
- * Flow: Controller -> Helper -> Service -> Helper -> Controller -> View
+ * External REST API ke liye Service Invocation (callService), Business Logic, Validation,
+ * Native PagingModel aur CRUD Module Exports.
+ * Flow: Controller -> Helper (callService) -> Service (LocalServiceRegistry) -> Helper -> Controller -> View
  */
 
 var PagingModel = require('dw/web/PagingModel');
 var ArrayList = require('dw/util/ArrayList');
 var URLUtils = require('dw/web/URLUtils');
+var Logger = require('dw/system/Logger').getLogger('jsonplaceholder', 'externalApi');
 var externalApiService = require('*/cartridge/scripts/services/externalApiService');
+
+var ENDPOINTS = {
+    POSTS: 'posts'
+};
+
+var HTTP_METHODS = {
+    GET: 'GET',
+    POST: 'POST',
+    PUT: 'PUT',
+    DELETE: 'DELETE'
+};
+
+/**
+ * Reusable service execution runner: Try-catch, error handling aur standardized response.
+ * @param {Object} params - { method, endpoint, queryParams, payload }
+ * @returns {Object} { success, status, data, totalCount, error }
+ */
+function callService(params) {
+    try {
+        var result = externalApiService.call(params);
+        if (result && result.isOk()) {
+            var obj = result.getObject();
+            return {
+                success: true,
+                status: obj.status,
+                data: obj.data,
+                totalCount: obj.totalCount,
+                error: null
+            };
+        }
+        var errMsg = (result && result.errorMessage) ? result.errorMessage : 'Service call failed';
+        Logger.error('externalApiHelper: Status {0}, Error: {1}', result ? result.error : 500, errMsg);
+        return {
+            success: false,
+            status: result ? result.error : 500,
+            data: null,
+            totalCount: 0,
+            error: errMsg
+        };
+    } catch (e) {
+        Logger.error('externalApiHelper Exception: {0}', e.message);
+        return {
+            success: false,
+            status: 500,
+            data: null,
+            totalCount: 0,
+            error: e.message
+        };
+    }
+}
 
 /**
  * Form payload ko validate aur sanitize karna (POST & PUT ke liye).
@@ -119,14 +171,20 @@ function calculatePagination(elements, page, limit, totalRecords) {
 }
 
 /**
- * 1. Paginated posts fetch karke PagingModel ke sath response ready karna (GET).
+ * 1. Paginated posts fetch karke PagingModel ke sath response ready karna (GET /posts).
+ * @param {string|number} page
+ * @param {string|number} limit
+ * @returns {Object}
  */
 function getPosts(page, limit) {
     var requestedPage = parseInt(page, 10) || 1;
     var requestedLimit = parseInt(limit, 10) || 10;
 
-    // Service call via externalApiService (Req Method 1: GET /posts)
-    var result = externalApiService.getPosts(requestedPage, requestedLimit);
+    var result = callService({
+        method: HTTP_METHODS.GET,
+        endpoint: ENDPOINTS.POSTS,
+        queryParams: { _page: requestedPage, _limit: requestedLimit }
+    });
     var pagination = calculatePagination(result.data, requestedPage, requestedLimit, result.totalCount);
 
     return {
@@ -138,7 +196,9 @@ function getPosts(page, limit) {
 }
 
 /**
- * 2. Specific Post ID se post fetch karna (GET).
+ * 2. Specific Post ID se post fetch karna (GET /posts/{id}).
+ * @param {string|number} postId
+ * @returns {Object}
  */
 function getPostById(postId) {
     var check = validatePostId(postId);
@@ -146,8 +206,10 @@ function getPostById(postId) {
         return { success: false, post: null, error: check.error };
     }
 
-    // Service call via externalApiService (Req Method 2: GET /posts/{id})
-    var result = externalApiService.getPostById(check.id);
+    var result = callService({
+        method: HTTP_METHODS.GET,
+        endpoint: ENDPOINTS.POSTS + '/' + check.id
+    });
     return {
         success: result.success,
         post: result.data || null,
@@ -156,7 +218,9 @@ function getPostById(postId) {
 }
 
 /**
- * 3. Nayi post validate karke create karna (POST).
+ * 3. Nayi post validate karke create karna (POST /posts).
+ * @param {Object} formData
+ * @returns {Object}
  */
 function createPost(formData) {
     var validation = validatePostPayload(formData);
@@ -164,8 +228,11 @@ function createPost(formData) {
         return { success: false, errors: validation.errors };
     }
 
-    // Service call via externalApiService (Req Method 3: POST /posts)
-    var result = externalApiService.createPost(validation.data);
+    var result = callService({
+        method: HTTP_METHODS.POST,
+        endpoint: ENDPOINTS.POSTS,
+        payload: validation.data
+    });
     return {
         success: result.success,
         message: result.success ? 'Post successfully create ho gayi!' : (result.error || 'Post create nahi ho saki.'),
@@ -176,7 +243,10 @@ function createPost(formData) {
 }
 
 /**
- * 4. Existing post validate karke update karna (PUT).
+ * 4. Existing post validate karke update karna (PUT /posts/{id}).
+ * @param {string|number} postId
+ * @param {Object} formData
+ * @returns {Object}
  */
 function updatePost(postId, formData) {
     var check = validatePostId(postId);
@@ -184,12 +254,17 @@ function updatePost(postId, formData) {
 
     if (!check.isValid || !validation.isValid) {
         var errors = validation.errors || {};
-        if (!check.isValid) { errors.id = check.error; }
+        if (!check.isValid) {
+            errors.id = check.error;
+        }
         return { success: false, errors: errors };
     }
 
-    // Service call via externalApiService (Req Method 4: PUT /posts/{id})
-    var result = externalApiService.updatePost(check.id, validation.data);
+    var result = callService({
+        method: HTTP_METHODS.PUT,
+        endpoint: ENDPOINTS.POSTS + '/' + check.id,
+        payload: validation.data
+    });
     return {
         success: result.success,
         message: result.success ? 'Post successfully update ho gayi!' : (result.error || 'Update request fail ho gayi.'),
@@ -200,7 +275,9 @@ function updatePost(postId, formData) {
 }
 
 /**
- * 5. Post delete karna (DELETE).
+ * 5. Post delete karna (DELETE /posts/{id}).
+ * @param {string|number} postId
+ * @returns {Object}
  */
 function deletePost(postId) {
     var check = validatePostId(postId);
@@ -208,8 +285,10 @@ function deletePost(postId) {
         return { success: false, error: check.error };
     }
 
-    // Service call via externalApiService (Req Method 5: DELETE /posts/{id})
-    var result = externalApiService.deletePost(check.id);
+    var result = callService({
+        method: HTTP_METHODS.DELETE,
+        endpoint: ENDPOINTS.POSTS + '/' + check.id
+    });
     return {
         success: result.success,
         message: result.success ? 'Post successfully delete ho gayi!' : (result.error || 'Delete request fail ho gayi.')
@@ -217,6 +296,7 @@ function deletePost(postId) {
 }
 
 module.exports = {
+    callService: callService,
     validatePostPayload: validatePostPayload,
     validatePostId: validatePostId,
     calculatePagination: calculatePagination,

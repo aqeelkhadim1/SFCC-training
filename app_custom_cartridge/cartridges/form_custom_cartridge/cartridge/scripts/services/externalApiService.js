@@ -4,10 +4,10 @@
 
 /**
  * externalApiService.js
- * JSONPlaceholder REST API ke sath complete CRUD operations aur pagination handle karne ke liye service layer.
+ * JSONPlaceholder REST API ke sath communication ke liye SFCC LocalServiceRegistry definition.
+ * Yeh layer sirf service register aur HTTP callbacks define karti hai; callService aur business CRUD helpers externalApiHelper.js mein handle hote hain.
  */
 var LocalServiceRegistry = require('dw/svc/LocalServiceRegistry');
-var Logger = require('dw/system/Logger').getLogger('jsonplaceholder', 'externalApi');
 
 // BM mein registered Service 'jsonplaceholder' ki definition aur callbacks
 var jsonService = LocalServiceRegistry.createService('jsonplaceholder', {
@@ -97,69 +97,4 @@ var jsonService = LocalServiceRegistry.createService('jsonplaceholder', {
     }
 });
 
-/**
- * Reusable execution runner: Try-catch, error handling aur standardized response
- * @param {Object} params
- * @returns {Object}
- */
-function callService(params) {
-    try {
-        var result = jsonService.call(params);
-        if (result && result.isOk()) {
-            var obj = result.getObject();
-            return { success: true, status: obj.status, data: obj.data, totalCount: obj.totalCount, error: null };
-        }
-        var errMsg = (result && result.errorMessage) ? result.errorMessage : 'Service call failed';
-        Logger.error('externalApiService: Status {0}, Error: {1}', result ? result.error : 500, errMsg);
-        return { success: false, status: result ? result.error : 500, data: null, totalCount: 0, error: errMsg };
-    } catch (e) {
-        Logger.error('externalApiService Exception: {0}', e.message);
-        return { success: false, status: 500, data: null, totalCount: 0, error: e.message };
-    }
-}
-
-// 5 Main Public CRUD Methods (task2 requirements ke mutabiq)
-module.exports = {
-    // 1. Paginated posts list mangwana (API query params _page aur _limit ke sath)
-    getPosts: function (page, limit) {
-        return callService({
-            method: 'GET',
-            endpoint: 'posts',
-            queryParams: { _page: page || 1, _limit: limit || 10 }
-        });
-    },
-
-    // 2. Specific post ID se single record mangwana
-    getPostById: function (postId) {
-        return callService({
-            method: 'GET',
-            endpoint: 'posts/' + postId
-        });
-    },
-
-    // 3. New post create karna (POST request with JSON payload)
-    createPost: function (payload) {
-        return callService({
-            method: 'POST',
-            endpoint: 'posts',
-            payload: payload
-        });
-    },
-
-    // 4. Existing post update karna (PUT request with JSON payload)
-    updatePost: function (postId, payload) {
-        return callService({
-            method: 'PUT',
-            endpoint: 'posts/' + postId,
-            payload: payload
-        });
-    },
-
-    // 5. Post delete karna (DELETE request)
-    deletePost: function (postId) {
-        return callService({
-            method: 'DELETE',
-            endpoint: 'posts/' + postId
-        });
-    }
-};
+module.exports = jsonService;
