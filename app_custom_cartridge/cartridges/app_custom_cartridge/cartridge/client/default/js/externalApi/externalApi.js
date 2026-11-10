@@ -38,6 +38,12 @@ function init() {
         message((xhr.responseJSON || {}).error || fallback || 'Request failed.', 'danger');
     }
 
+    function responseError(response, fallback) {
+        if (!response || (!response.error && response.success !== false)) return false;
+        message(response.error || fallback || 'Request failed.', 'danger');
+        return true;
+    }
+
     function modal(selector, show) {
         var $modal = $(selector);
         var element = $modal[0];
@@ -210,7 +216,10 @@ function init() {
         };
 
         if (localPosts[id]) done(localPosts[id]);
-        else api(urls.view, 'GET', { id: id }).done(done).fail(function () { done(rowPost($button.closest('tr'))); });
+        else api(urls.view, 'GET', { id: id }).done(function (response) {
+            if (responseError(response, 'Unable to retrieve post.')) done(rowPost($button.closest('tr')));
+            else done(response);
+        }).fail(function () { done(rowPost($button.closest('tr'))); });
     });
 
     $(document).on('submit.externalApi', '#post-form', function (event) {
@@ -225,7 +234,9 @@ function init() {
         if (mode === 'delete') {
             if (localPosts[selectedId]) return removePost();
             $submit.prop('disabled', true).text('Deleting...');
-            api(urls.delete, 'POST', $form.serialize()).done(removePost)
+            api(urls.delete, 'POST', $form.serialize()).done(function (response) {
+                if (!responseError(response, 'Unable to delete post.')) removePost();
+            })
                 .fail(function (xhr) { requestError(xhr, 'Unable to delete post.'); })
                 .always(function () { $submit.prop('disabled', false).text(submitText); });
             return;
@@ -238,6 +249,7 @@ function init() {
         $submit.prop('disabled', true).text(mode === 'create' ? 'Saving...' : 'Updating...');
         api(mode === 'create' ? urls.save : urls.update, 'POST', $form.serialize())
             .done(function (response) {
+                if (responseError(response, mode === 'create' ? 'Unable to create post.' : 'Unable to update post.')) return;
                 post = $.extend({}, post, response || {});
                 if (mode === 'edit') return update(post);
                 post.id = post.id || 101;
@@ -255,6 +267,7 @@ function init() {
         var url = $(this).data('url');
         if (!url) return;
         api(url.replace('ExternalApi-Show', 'ExternalApi-GetPosts')).done(function (response) {
+            if (responseError(response, 'Unable to retrieve posts.')) return;
             var paging = response.pagination;
             render(response.posts);
             $count.text(paging.totalCount);
@@ -268,6 +281,7 @@ function init() {
         var html = $more.html();
         $more.prop('disabled', true).text($more.data('loading-text') || 'Loading...');
         return api(urls.get, 'GET', { page: page, pageSize: PAGE_SIZE }).done(function (response) {
+            if (responseError(response, 'Unable to retrieve posts.')) return;
             var posts = response.posts || [];
             render(posts, true);
             var loaded = $table.children('tr').length;

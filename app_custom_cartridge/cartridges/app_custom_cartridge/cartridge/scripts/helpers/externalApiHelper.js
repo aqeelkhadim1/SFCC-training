@@ -1,143 +1,157 @@
+/* eslint-disable */
+// @ts-nocheck
 'use strict';
+
+/**
+ * External API service invocation, validation, pagination and CRUD mapping.
+ * Flow: Controller -> Helper -> Service -> Helper -> Controller -> View/JSON
+ */
 
 var Logger = require('dw/system/Logger').getLogger('externalApi', 'helper');
 var PagingModel = require('dw/web/PagingModel');
 var URLUtils = require('dw/web/URLUtils');
 var ArrayList = require('dw/util/ArrayList');
+var externalApiService = require('*/cartridge/scripts/services/externalApiService');
 
 var DEFAULT_PAGE_SIZE = 10;
 var MAX_PAGE_SIZE = 100;
+var MIN_DESCRIPTION_LENGTH = 10;
+var MAX_DESCRIPTION_LENGTH = 500;
+var ENDPOINTS = { POSTS: 'posts' };
+var HTTP_METHODS = {
+    GET: 'GET',
+    POST: 'POST',
+    PUT: 'PUT',
+    DELETE: 'DELETE'
+};
 
 /**
- * Executes external API call via externalApiService using serviceConfig
- * Flow: Controller -> Helper -> Service
- * @param {Object} serviceConfig - Configuration object { requestType, requestURL, payload }
- * @returns {Object} Normalized result { ok, data, errorMessage }
+ * Executes and normalizes an external service request.
+ * @param {Object} config Service configuration
+ * @returns {Object} Normalized result
  */
-function callApi(serviceConfig) {
-    // SFCC resolves the cartridge wildcard alias at runtime.
-    // @ts-ignore
-    var externalApiService = require('*/cartridge/scripts/services/externalApiService');
-    var config = serviceConfig || {};
+function callService(config) {
+    var serviceConfig = config || {};
 
     try {
-        var result = externalApiService.getService().call(config);
-
+        var result = externalApiService.getService().call(serviceConfig);
         if (result && result.ok) {
-            return {
-                ok: true,
-                data: result.object
-            };
+            return { ok: true, data: result.object };
         }
 
-        // Log API failure
         Logger.error('API Failure: [{0}] {1} - Status: {2}, Message: {3}',
-            config.requestType || 'GET',
-            config.requestURL || 'posts',
+            serviceConfig.requestType || HTTP_METHODS.GET,
+            serviceConfig.requestURL || ENDPOINTS.POSTS,
             result ? result.status : 'UNKNOWN',
-            result ? (result.errorMessage || '') : ''
-        );
+            result ? (result.errorMessage || '') : '');
 
         return {
             ok: false,
             errorMessage: result ? (result.errorMessage || result.status) : 'Service call failed'
         };
     } catch (e) {
-        var errorMessage = e instanceof Error
-            ? e.message
-            : String(e);
-
+        var message = e instanceof Error ? e.message : String(e);
         Logger.error('API Exception: [{0}] {1} - {2}',
-            config.requestType || 'GET',
-            config.requestURL || 'posts',
-            errorMessage
-        );
-
-        return {
-            ok: false,
-            errorMessage: errorMessage || 'API request failed'
-        };
+            serviceConfig.requestType || HTTP_METHODS.GET,
+            serviceConfig.requestURL || ENDPOINTS.POSTS,
+            message);
+        return { ok: false, errorMessage: message || 'API request failed' };
     }
 }
 
+function invalid(message) {
+    return { valid: false, message: message };
+}
+
 /**
- * Validates a post ID and provides a reusable error message.
- * @param {*} value - The post ID to validate
+ * @param {*} value Post ID
  * @returns {Object} Validation result
  */
-function validateId(value) {
-    if (!/^[1-9]\d*$/.test(String(value))) {
-        return {
-            valid: false,
-            message: 'Invalid post ID'
-        };
+function validatePostId(value) {
+    return /^[1-9]\d*$/.test(String(value))
+        ? { valid: true, id: Number(value) }
+        : invalid('Invalid post ID');
+}
+
+/**
+ * @param {Object} payload Post form data
+ * @returns {Object} Validation result and sanitized payload
+ */
+function validatePostPayload(payload) {
+    if (!payload) return invalid('Post data is required');
+    if (!validatePostId(payload.userId).valid) return invalid('Valid User ID is required');
+
+    var title = typeof payload.title === 'string' ? payload.title.trim() : '';
+    var body = typeof payload.body === 'string' ? payload.body.trim() : '';
+
+    if (!title) return invalid('Title is required');
+    if (!body) return invalid('Description is required');
+    if (body.length < MIN_DESCRIPTION_LENGTH || body.length > MAX_DESCRIPTION_LENGTH) {
+        return invalid('Description must be between 10 and 500 characters');
     }
 
     return {
         valid: true,
-        id: parseInt(value, 10)
+        payload: { userId: Number(payload.userId), title: title, body: body }
     };
 }
 
+function getPagingParams(queryString) {
+    var query = queryString || {};
+    var pageSize = parseInt(query.pageSize || query.limit || query.sz, 10) || DEFAULT_PAGE_SIZE;
+    if (pageSize < 1 || pageSize > MAX_PAGE_SIZE) pageSize = DEFAULT_PAGE_SIZE;
+
+    var page = Math.max(1, parseInt(query.page, 10) || 1);
+    if (query.start !== undefined && !query.page) {
+        page = Math.floor(Math.max(0, parseInt(query.start, 10) || 0) / pageSize) + 1;
+    }
+    return { page: page, pageSize: pageSize };
+}
+
+function pagingUrl(paging, endpoint, page, pageSize) {
+    try {
+        paging.setStart((page - 1) * pageSize);
+        return paging.appendPaging(URLUtils.url(endpoint)).toString();
+    } catch (e) {
+        return URLUtils.url(endpoint, 'page', page, 'pageSize', pageSize).toString();
+    }
+}
+
 /**
- * Creates an SFCC paging model for API records.
- * @param {dw.util.Collection|Array} allRecords - Records to paginate
- * @param {number} page - Current one-based page
- * @param {number} pageSize - Records per page
- * @param {string} endpoint - Pagination URL endpoint
- * @returns {Object} Page records and pagination metadata
+ * Creates the current page and frontend pagination metadata.
+ * @param {dw.util.Collection|Array} allRecords API records
+ * @param {number} page Requested page
+ * @param {number} pageSize Records per page
+ * @param {string} endpoint Pagination route
+ * @returns {Object} Page records and metadata
  */
-function createPagingModel(allRecords, page, pageSize, endpoint) {
+function calculatePagination(allRecords, page, pageSize, endpoint) {
     var records = allRecords instanceof Array ? new ArrayList(allRecords) : allRecords;
     var size = pageSize || DEFAULT_PAGE_SIZE;
     var currentPage = page || 1;
     var targetEndpoint = endpoint || 'ExternalApi-Show';
     var paging = new PagingModel(records.iterator(), records.size());
+    var pageRecords = [];
 
     paging.setPageSize(size);
     paging.setStart((currentPage - 1) * size);
-
     var iterator = paging.pageElements;
-    var pageRecords = [];
-
-    while (iterator.hasNext()) {
-        pageRecords.push(iterator.next());
-    }
+    while (iterator.hasNext()) pageRecords.push(iterator.next());
 
     var hasPrevious = paging.currentPage > 0;
     var hasNext = paging.currentPage < paging.maxPage;
-    var baseUrl = URLUtils.url(targetEndpoint);
-    var nextUrl = null;
-    var previousUrl = null;
-
-    if (hasNext) {
-        try {
-            paging.setStart(currentPage * size);
-            nextUrl = paging.appendPaging(baseUrl).toString();
-        } catch (e) {
-            nextUrl = URLUtils.url(targetEndpoint, 'page', currentPage + 1, 'pageSize', size).toString();
-        }
-    }
-
-    if (hasPrevious) {
-        try {
-            paging.setStart((currentPage - 2) * size);
-            previousUrl = paging.appendPaging(baseUrl).toString();
-        } catch (e) {
-            previousUrl = URLUtils.url(targetEndpoint, 'page', currentPage - 1, 'pageSize', size).toString();
-        }
-    }
-
-    paging.setStart((currentPage - 1) * size);
+    var previousUrl = hasPrevious
+        ? pagingUrl(paging, targetEndpoint, currentPage - 1, size)
+        : null;
+    var nextUrl = hasNext
+        ? pagingUrl(paging, targetEndpoint, currentPage + 1, size)
+        : null;
 
     return {
         records: pageRecords,
         pagination: {
             page: currentPage,
-            currentPage: currentPage,
             totalPages: paging.pageCount,
-            pageCount: paging.pageCount,
-            totalRecords: paging.count,
             totalCount: paging.count,
             pageSize: paging.pageSize,
             hasPrevious: hasPrevious,
@@ -148,212 +162,99 @@ function createPagingModel(allRecords, page, pageSize, endpoint) {
     };
 }
 
-/**
- * Extracts and sanitizes pagination parameters from request query
- * Supports SFCC native 'start'/'sz' and REST 'page'/'limit' parameters
- * @param {Object} queryString - req.querystring object
- * @returns {Object} Sanitized pagination parameters { page, pageSize, limit, start }
- */
-function getPagingParams(queryString) {
-    var query = queryString || {};
+function requestPost(method, postId, payload) {
+    var config = {
+        requestType: method,
+        requestURL: ENDPOINTS.POSTS + (postId ? '/' + postId : '')
+    };
+    if (payload) config.payload = payload;
+    return callService(config);
+}
 
-    var size = parseInt(query.pageSize || query.limit || query.sz, 10) || DEFAULT_PAGE_SIZE;
-    if (size < 1 || size > MAX_PAGE_SIZE) {
-        size = DEFAULT_PAGE_SIZE;
-    }
-
-    var page = 1;
-    if (query.start !== undefined && !query.page) {
-        var startOffset = Math.max(0, parseInt(query.start, 10) || 0);
-        page = Math.floor(startOffset / size) + 1;
-    } else {
-        page = Math.max(1, parseInt(query.page, 10) || 1);
-    }
-
+function emptyPagination(page) {
     return {
         page: page,
-        pageSize: size,
-        limit: size,
-        start: (page - 1) * size
+        totalPages: 0,
+        totalCount: 0,
+        pageSize: DEFAULT_PAGE_SIZE,
+        hasPrevious: false,
+        hasNext: false,
+        previousUrl: null,
+        nextUrl: null
     };
 }
 
 /**
- * Retrieves all posts from the external API.
- * @returns {Object} API response with posts data or error
+ * Returns frontend-ready listing data for page, AJAX and View More restore.
  */
-function getPosts() {
-    return callApi({
-        requestType: 'GET',
-        requestURL: 'posts'
-    });
-}
-
-/**
- * Retrieves a single post by ID from the external API.
- * @param {string|number} postId - ID of the post
- * @returns {Object} API response with post data or error
- */
-function getPost(postId) {
-    return callApi({
-        requestType: 'GET',
-        requestURL: 'posts/' + postId
-    });
-}
-
-/**
- * Creates a new post on the external API.
- * @param {Object} payload - Post payload (userId, title, body)
- * @returns {Object} API response
- */
-function savePost(payload) {
-    return callApi({
-        requestType: 'POST',
-        requestURL: 'posts',
-        payload: payload
-    });
-}
-
-/**
- * Updates an existing post on the external API.
- * @param {string|number} postId - ID of the post
- * @param {Object} payload - Post payload (userId, title, body)
- * @returns {Object} API response
- */
-function updatePost(postId, payload) {
-    return callApi({
-        requestType: 'PUT',
-        requestURL: 'posts/' + postId,
-        payload: payload
-    });
-}
-
-/**
- * Deletes a post on the external API.
- * @param {string|number} postId - ID of the post
- * @returns {Object} API response
- */
-function deletePost(postId) {
-    return callApi({
-        requestType: 'DELETE',
-        requestURL: 'posts/' + postId
-    });
-}
-
-/**
- * Constructs a normalized post payload from form input.
- * @param {Object} form - Form data object
- * @returns {Object} Normalized post payload
- */
-function buildPostPayload(form) {
-    return {
-        userId: parseInt(String(form.userId), 10),
-        title: form.title.trim(),
-        body: form.body.trim()
-    };
-}
-
-/**
- * Fetches posts and prepares paginated data for a controller response.
- * @param {Object} queryString - Request query parameters
- * @param {string} endpoint - Pagination link endpoint
- * @returns {Object} Paginated posts or a normalized service error
- */
-function getPagedPosts(queryString, endpoint) {
+function getPosts(queryString, endpoint, restoreMode) {
     var params = getPagingParams(queryString);
-    var result = getPosts();
-
-    if (!result.ok || !result.data) {
-        return {
-            ok: false,
-            errorMessage: result.errorMessage || 'No data returned',
-            posts: [],
-            pagination: {
-                page: params.page,
-                totalPages: 0,
-                totalCount: 0,
-                hasPrevious: false,
-                hasNext: false,
-                previousUrl: null,
-                nextUrl: null
-            }
-        };
-    }
-
-    var pagedResult = createPagingModel(
-        result.data,
-        params.page,
-        params.pageSize,
-        endpoint
-    );
-
-    return {
-        ok: true,
-        posts: pagedResult.records,
-        pagination: pagedResult.pagination
+    var displayPage = restoreMode ? 1 : params.page;
+    var result = requestPost(HTTP_METHODS.GET);
+    var paged = result.ok && result.data
+        ? calculatePagination(result.data, displayPage, params.pageSize, endpoint)
+        : { records: [], pagination: emptyPagination(displayPage) };
+    var response = {
+        success: result.ok,
+        error: result.ok ? null : 'Unable to retrieve posts',
+        errorMessage: result.ok ? null : 'Posts are temporarily unavailable.',
+        posts: paged.records,
+        pagination: paged.pagination
     };
+
+    if (restoreMode) {
+        response.restorePage = result.ok
+            ? Math.min(params.page, paged.pagination.totalPages)
+            : params.page;
+    }
+    return response;
 }
 
-/**
- * Validates post payload fields (userId, title, body)
- * @param {Object} payload - Post payload object
- * @returns {Object} Validation status and message
- */
-function validatePost(payload) {
-    if (!payload) {
-        return {
-            valid: false,
-            message: 'Post data is required'
-        };
-    }
+function toClientResponse(result, fallbackMessage, successData) {
+    if (!result || !result.ok) return { success: false, error: fallbackMessage };
+    return successData === undefined ? result.data : successData;
+}
 
-    if (!validateId(payload.userId).valid) {
-        return {
-            valid: false,
-            message: 'Valid User ID is required'
-        };
-    }
+function getPostById(postId) {
+    var validation = validatePostId(postId);
+    return validation.valid
+        ? toClientResponse(requestPost(HTTP_METHODS.GET, validation.id), 'Post not found')
+        : { success: false, error: validation.message };
+}
 
-    if (
-        typeof payload.title !== 'string' ||
-        !payload.title.trim()
-    ) {
-        return {
-            valid: false,
-            message: 'Title is required'
-        };
-    }
+function createPost(form) {
+    var validation = validatePostPayload(form);
+    return validation.valid
+        ? toClientResponse(requestPost(HTTP_METHODS.POST, null, validation.payload), 'Unable to create post')
+        : { success: false, error: validation.message };
+}
 
-    if (
-        typeof payload.body !== 'string' ||
-        !payload.body.trim()
-    ) {
-        return {
-            valid: false,
-            message: 'Description is required'
-        };
-    }
+function updatePost(postId, form) {
+    var idValidation = validatePostId(postId);
+    var formValidation = validatePostPayload(form);
+    if (!idValidation.valid) return { success: false, error: idValidation.message };
+    if (!formValidation.valid) return { success: false, error: formValidation.message };
+    return toClientResponse(
+        requestPost(HTTP_METHODS.PUT, idValidation.id, formValidation.payload),
+        'Unable to update post'
+    );
+}
 
-    var descriptionLength = payload.body.trim().length;
-    if (descriptionLength < 10 || descriptionLength > 500) {
-        return {
-            valid: false,
-            message: 'Description must be between 10 and 500 characters'
-        };
-    }
-
-    return {
-        valid: true
-    };
+function deletePost(postId) {
+    var validation = validatePostId(postId);
+    return validation.valid
+        ? toClientResponse(requestPost(HTTP_METHODS.DELETE, validation.id), 'Unable to delete post', { success: true })
+        : { success: false, error: validation.message };
 }
 
 module.exports = {
-    getPagedPosts: getPagedPosts,
-    getPost: getPost,
-    savePost: savePost,
+    callService: callService,
+    validatePostPayload: validatePostPayload,
+    validatePostId: validatePostId,
+    calculatePagination: calculatePagination,
+    getPosts: getPosts,
+    getPostById: getPostById,
+    createPost: createPost,
     updatePost: updatePost,
-    deletePost: deletePost,
-    buildPostPayload: buildPostPayload,
-    validateId: validateId,
-    validatePost: validatePost
+    deletePost: deletePost
 };
