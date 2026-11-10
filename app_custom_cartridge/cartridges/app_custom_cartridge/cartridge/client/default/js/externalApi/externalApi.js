@@ -13,6 +13,7 @@ function init() {
     var $table = $('#posts-table-body');
     var $count = $('#post-count');
     var $more = $('#btn-view-more');
+    var $postForm = $('#post-form');
     var urls = {};
     var localPosts = {};
     var selectedId;
@@ -139,7 +140,7 @@ function init() {
         $row.addClass('table-info');
         setTimeout(function () { $row.removeClass('table-info'); }, 2500);
         localPosts[post.id] = post;
-        modal('#editPostModal', false);
+        modal('#postModal', false);
         message('Post updated successfully.', 'success');
     }
 
@@ -147,93 +148,107 @@ function init() {
         $count.text(Math.max(0, (parseInt($count.text(), 10) || 0) + change));
     }
 
+    function configurePostModal(mode, post) {
+        var isView = mode === 'view';
+        var isDelete = mode === 'delete';
+        var $action = $('#post-modal-action');
+
+        $postForm[0].reset();
+        $postForm.find('[name="mode"]').val(mode);
+        $postForm.find('input, textarea').each(function () { fieldError($(this)); });
+        FIELDS.forEach(function (key) {
+            $postForm.find('[name="' + key + '"]').val(post ? post[key] : '');
+        });
+
+        $('#post-modal-title').text($postForm.attr('data-' + mode + '-title'));
+        $('#post-fields').toggleClass('d-none', isDelete);
+        $('#delete-confirmation').toggleClass('d-none', !isDelete);
+        $postForm.find('[name="userId"], [name="title"], [name="body"]').prop('readonly', isView);
+        $postForm.find('.js-required').toggle(!isView);
+
+        $action.toggle(!isView)
+            .toggleClass('btn-primary', !isDelete)
+            .toggleClass('btn-danger', isDelete)
+            .text(isDelete ? $postForm.attr('data-delete-action') : $postForm.attr('data-' + mode + '-action'));
+
+        modal('#postModal', true);
+    }
+
+    function removePost() {
+        delete localPosts[selectedId];
+        findRow(selectedId).fadeOut(400, function () { $(this).remove(); changeCount(-1); });
+        modal('#postModal', false);
+        message('Post deleted successfully.', 'success');
+    }
+
     $('.js-create-post').on('click', function (event) {
         event.preventDefault();
-        var $form = $('#create-form');
-        $form[0].reset();
-        $form.find('input, textarea').each(function () { fieldError($(this)); });
-        modal('#createPostModal', true);
+        configurePostModal('create');
     });
 
     $(document)
         .on('click', '.btn-close, [data-dismiss="modal"], [data-bs-dismiss="modal"]', function () {
             modal('#' + $(this).closest('.modal').attr('id'), false);
         })
-        .on('input change', '#create-form input, #create-form textarea, #edit-form input, #edit-form textarea', function () {
+        .on('input change', '#post-form input, #post-form textarea', function () {
             fieldError($(this));
         });
 
-    $table.on('click', '.js-view, .js-edit', function () {
+    $table.on('click', '.js-view, .js-edit, .js-delete', function () {
         var $button = $(this);
         var id = $button.data('id');
+        var mode = $button.hasClass('js-delete') ? 'delete' : $button.hasClass('js-edit') ? 'edit' : 'view';
+
+        if (mode === 'delete') {
+            selectedId = id;
+            configurePostModal('delete', { id: id });
+            return;
+        }
+
         var done = function (post) {
-            if ($button.hasClass('js-edit')) {
-                FIELDS.forEach(function (key) { $('#edit-form [name="' + key + '"]').val(post[key]); });
-                modal('#editPostModal', true);
-            } else {
-                FIELDS.forEach(function (key) { $('#view-' + key).text(post[key]); });
-                modal('#viewPostModal', true);
-            }
+            configurePostModal(mode, post);
         };
 
         if (localPosts[id]) done(localPosts[id]);
         else api(urls.view, 'GET', { id: id }).done(done).fail(function () { done(rowPost($button.closest('tr'))); });
     });
 
-    $table.on('click', '.js-delete', function () {
-        selectedId = $(this).data('id');
-        $('#delete-id').val(selectedId);
-        modal('#deletePostModal', true);
-    });
-
-    $(document).on('submit.externalApi', '#create-form', function (event) {
+    $(document).on('submit.externalApi', '#post-form', function (event) {
         event.preventDefault();
         event.stopPropagation();
         var $form = $(this);
-        if (!validate($form)) return;
-        var submitted = formPost($form);
+        var mode = $form.find('[name="mode"]').val();
         var $submit = $form.find('[type="submit"]');
         var submitText = $submit.text();
-        $submit.prop('disabled', true).text('Saving...');
-        api(urls.save, 'POST', $form.serialize()).done(function (response) {
-            var post = $.extend({}, submitted, response || {});
-            post.id = post.id || 101;
-            localPosts[post.id] = post;
-            $table.prepend(row(post));
-            changeCount(1);
-            modal('#createPostModal', false);
-            message('Post created successfully.', 'success');
-        }).fail(function (xhr) {
-            requestError(xhr, 'Unable to create post.');
-        }).always(function () {
-            $submit.prop('disabled', false).text(submitText);
-        });
-    });
+        var post;
 
-    $(document).on('submit.externalApi', '#edit-form', function (event) {
-        event.preventDefault();
-        event.stopPropagation();
-        var $form = $(this);
-        if (!validate($form)) return;
-        var post = formPost($form);
-        if (localPosts[post.id]) update(post);
-        else api(urls.update, 'POST', $form.serialize()).done(function (response) {
-            update($.extend({}, post, response || {}));
-        }).fail(function (xhr) { requestError(xhr, 'Unable to update post.'); });
-    });
-
-    $('#confirm-delete').on('click', function () {
-        function remove() {
-            delete localPosts[selectedId];
-            findRow(selectedId).fadeOut(400, function () { $(this).remove(); changeCount(-1); });
-            modal('#deletePostModal', false);
-            message('Post deleted successfully.', 'success');
+        if (mode === 'delete') {
+            if (localPosts[selectedId]) return removePost();
+            $submit.prop('disabled', true).text('Deleting...');
+            api(urls.delete, 'POST', $form.serialize()).done(removePost)
+                .fail(function (xhr) { requestError(xhr, 'Unable to delete post.'); })
+                .always(function () { $submit.prop('disabled', false).text(submitText); });
+            return;
         }
-        if (localPosts[selectedId]) return remove();
-        var data = { id: selectedId };
-        data[$config.data('csrf-name')] = $config.data('csrf-token');
-        api(urls.delete, 'POST', data).done(remove)
-            .fail(function (xhr) { requestError(xhr, 'Unable to delete post.'); });
+
+        if (!validate($form)) return;
+        post = formPost($form);
+        if (mode === 'edit' && localPosts[post.id]) return update(post);
+
+        $submit.prop('disabled', true).text(mode === 'create' ? 'Saving...' : 'Updating...');
+        api(mode === 'create' ? urls.save : urls.update, 'POST', $form.serialize())
+            .done(function (response) {
+                post = $.extend({}, post, response || {});
+                if (mode === 'edit') return update(post);
+                post.id = post.id || 101;
+                localPosts[post.id] = post;
+                $table.prepend(row(post));
+                changeCount(1);
+                modal('#postModal', false);
+                message('Post created successfully.', 'success');
+            })
+            .fail(function (xhr) { requestError(xhr, mode === 'create' ? 'Unable to create post.' : 'Unable to update post.'); })
+            .always(function () { $submit.prop('disabled', false).text(submitText); });
     });
 
     $('#prev-page, #next-page').on('click', function () {

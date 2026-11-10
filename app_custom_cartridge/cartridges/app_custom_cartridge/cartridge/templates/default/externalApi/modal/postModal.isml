@@ -1,0 +1,66 @@
+<div class="modal fade" id="postModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <form id="post-form" novalidate
+                data-create-title="${Resource.msg('modal.create.title', 'externalApi', null)}"
+                data-view-title="${Resource.msg('modal.view.title', 'externalApi', null)}"
+                data-edit-title="${Resource.msg('modal.edit.title', 'externalApi', null)}"
+                data-delete-title="${Resource.msg('modal.delete.title', 'externalApi', null)}"
+                data-create-action="${Resource.msg('modal.create.btn.save', 'externalApi', null)}"
+                data-edit-action="${Resource.msg('modal.edit.btn.update', 'externalApi', null)}"
+                data-delete-action="${Resource.msg('modal.delete.btn.delete', 'externalApi', null)}">
+                <input type="hidden" name="mode" value="create">
+                <input type="hidden" name="id">
+                <input type="hidden" name="${pdict.csrf.tokenName}" value="${pdict.csrf.token}">
+
+                <div class="modal-header">
+                    <h5 class="modal-title" id="post-modal-title"></h5>
+                    <button type="button" class="btn-close close" data-bs-dismiss="modal" data-dismiss="modal"
+                        aria-label="${Resource.msg('btn.close', 'externalApi', null)}"></button>
+                </div>
+
+                <div class="modal-body">
+                    <div id="post-fields">
+                        <div class="form-group mb-3">
+                            <label class="form-label">
+                                ${Resource.msg('label.userid', 'externalApi', null)}
+                                <span class="text-danger js-required" aria-hidden="true">${Resource.msg('symbol.required', 'externalApi', null)}</span>
+                            </label>
+                            <input type="number" name="userId" class="form-control">
+                            <div class="invalid-feedback"></div>
+                        </div>
+
+                        <div class="form-group mb-3">
+                            <label class="form-label">
+                                ${Resource.msg('label.title', 'externalApi', null)}
+                                <span class="text-danger js-required" aria-hidden="true">${Resource.msg('symbol.required', 'externalApi', null)}</span>
+                            </label>
+                            <input type="text" name="title" class="form-control">
+                            <div class="invalid-feedback"></div>
+                        </div>
+
+                        <div class="form-group mb-3">
+                            <label class="form-label">
+                                ${Resource.msg('label.description', 'externalApi', null)}
+                                <span class="text-danger js-required" aria-hidden="true">${Resource.msg('symbol.required', 'externalApi', null)}</span>
+                            </label>
+                            <textarea name="body" class="form-control" rows="4" minlength="10" maxlength="500"></textarea>
+                            <div class="invalid-feedback"></div>
+                        </div>
+                    </div>
+
+                    <div id="delete-confirmation" class="d-none">
+                        ${Resource.msg('modal.delete.confirmation', 'externalApi', null)}
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" data-dismiss="modal">
+                        ${Resource.msg('btn.cancel', 'externalApi', null)}
+                    </button>
+                    <button type="submit" id="post-modal-action" class="btn btn-primary"></button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

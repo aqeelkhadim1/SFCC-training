@@ -17,8 +17,7 @@
                 <a href="${URLUtils.url('ExternalApi-Show')}" class="btn btn-outline-secondary me-2">
                     <i class="fa fa-arrow-left me-1" aria-hidden="true"></i> ${Resource.msg('link.back.to.management', 'externalApi', null)}
                 </a>
-                <button type="button" class="btn btn-primary js-create-post" data-bs-toggle="modal"
-                    data-bs-target="#createPostModal" data-toggle="modal" data-target="#createPostModal">
+                <button type="button" class="btn btn-primary js-create-post">
                     ${Resource.msg('btn.create.post', 'externalApi', null)}
                 </button>
             </div>
@@ -120,9 +119,6 @@
 
     </div>
 
-    <isinclude template="externalApi/modal/createPostModal" />
-    <isinclude template="externalApi/modal/viewPostModal" />
-    <isinclude template="externalApi/modal/editPostModal" />
-    <isinclude template="externalApi/modal/deletePostModal" />
+    <isinclude template="externalApi/modal/postModal" />
 
 </isdecorate>

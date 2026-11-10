@@ -149,6 +149,111 @@ function createPagingModel(allRecords, page, pageSize, endpoint) {
 }
 
 /**
+ * Extracts and sanitizes pagination parameters from request query
+ * Supports SFCC native 'start'/'sz' and REST 'page'/'limit' parameters
+ * @param {Object} queryString - req.querystring object
+ * @returns {Object} Sanitized pagination parameters { page, pageSize, limit, start }
+ */
+function getPagingParams(queryString) {
+    var query = queryString || {};
+
+    var size = parseInt(query.pageSize || query.limit || query.sz, 10) || DEFAULT_PAGE_SIZE;
+    if (size < 1 || size > MAX_PAGE_SIZE) {
+        size = DEFAULT_PAGE_SIZE;
+    }
+
+    var page = 1;
+    if (query.start !== undefined && !query.page) {
+        var startOffset = Math.max(0, parseInt(query.start, 10) || 0);
+        page = Math.floor(startOffset / size) + 1;
+    } else {
+        page = Math.max(1, parseInt(query.page, 10) || 1);
+    }
+
+    return {
+        page: page,
+        pageSize: size,
+        limit: size,
+        start: (page - 1) * size
+    };
+}
+
+/**
+ * Retrieves all posts from the external API.
+ * @returns {Object} API response with posts data or error
+ */
+function getPosts() {
+    return callApi({
+        requestType: 'GET',
+        requestURL: 'posts'
+    });
+}
+
+/**
+ * Retrieves a single post by ID from the external API.
+ * @param {string|number} postId - ID of the post
+ * @returns {Object} API response with post data or error
+ */
+function getPost(postId) {
+    return callApi({
+        requestType: 'GET',
+        requestURL: 'posts/' + postId
+    });
+}
+
+/**
+ * Creates a new post on the external API.
+ * @param {Object} payload - Post payload (userId, title, body)
+ * @returns {Object} API response
+ */
+function savePost(payload) {
+    return callApi({
+        requestType: 'POST',
+        requestURL: 'posts',
+        payload: payload
+    });
+}
+
+/**
+ * Updates an existing post on the external API.
+ * @param {string|number} postId - ID of the post
+ * @param {Object} payload - Post payload (userId, title, body)
+ * @returns {Object} API response
+ */
+function updatePost(postId, payload) {
+    return callApi({
+        requestType: 'PUT',
+        requestURL: 'posts/' + postId,
+        payload: payload
+    });
+}
+
+/**
+ * Deletes a post on the external API.
+ * @param {string|number} postId - ID of the post
+ * @returns {Object} API response
+ */
+function deletePost(postId) {
+    return callApi({
+        requestType: 'DELETE',
+        requestURL: 'posts/' + postId
+    });
+}
+
+/**
+ * Constructs a normalized post payload from form input.
+ * @param {Object} form - Form data object
+ * @returns {Object} Normalized post payload
+ */
+function buildPostPayload(form) {
+    return {
+        userId: parseInt(String(form.userId), 10),
+        title: form.title.trim(),
+        body: form.body.trim()
+    };
+}
+
+/**
  * Fetches posts and prepares paginated data for a controller response.
  * @param {Object} queryString - Request query parameters
  * @param {string} endpoint - Pagination link endpoint
@@ -186,51 +291,6 @@ function getPagedPosts(queryString, endpoint) {
         ok: true,
         posts: pagedResult.records,
         pagination: pagedResult.pagination
-    };
-}
-
-function getPosts() {
-    return callApi({
-        requestType: 'GET',
-        requestURL: 'posts'
-    });
-}
-
-function getPost(postId) {
-    return callApi({
-        requestType: 'GET',
-        requestURL: 'posts/' + postId
-    });
-}
-
-function savePost(payload) {
-    return callApi({
-        requestType: 'POST',
-        requestURL: 'posts',
-        payload: payload
-    });
-}
-
-function updatePost(postId, payload) {
-    return callApi({
-        requestType: 'PUT',
-        requestURL: 'posts/' + postId,
-        payload: payload
-    });
-}
-
-function deletePost(postId) {
-    return callApi({
-        requestType: 'DELETE',
-        requestURL: 'posts/' + postId
-    });
-}
-
-function buildPostPayload(form) {
-    return {
-        userId: parseInt(String(form.userId), 10),
-        title: form.title.trim(),
-        body: form.body.trim()
     };
 }
 
@@ -284,36 +344,6 @@ function validatePost(payload) {
 
     return {
         valid: true
-    };
-}
-
-/**
- * Extracts and sanitizes pagination parameters from request query
- * Supports SFCC native 'start'/'sz' and REST 'page'/'limit' parameters
- * @param {Object} queryString - req.querystring object
- * @returns {Object} Sanitized pagination parameters { page, pageSize, limit, start }
- */
-function getPagingParams(queryString) {
-    var query = queryString || {};
-
-    var size = parseInt(query.pageSize || query.limit || query.sz, 10) || DEFAULT_PAGE_SIZE;
-    if (size < 1 || size > MAX_PAGE_SIZE) {
-        size = DEFAULT_PAGE_SIZE;
-    }
-
-    var page = 1;
-    if (query.start !== undefined && !query.page) {
-        var startOffset = Math.max(0, parseInt(query.start, 10) || 0);
-        page = Math.floor(startOffset / size) + 1;
-    } else {
-        page = Math.max(1, parseInt(query.page, 10) || 1);
-    }
-
-    return {
-        page: page,
-        pageSize: size,
-        limit: size,
-        start: (page - 1) * size
     };
 }
 
