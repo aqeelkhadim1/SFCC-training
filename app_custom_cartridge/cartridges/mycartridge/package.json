@@ -8,10 +8,10 @@
     "lint:fix": "sgmf-scripts --lint js --fix && sgmf-scripts --lint css --fix",
     "upload": "sgmf-scripts --upload -- ",
     "uploadCartridge": "sgmf-scripts --uploadCartridge mycartridge",
-    "compile:js": "sgmf-scripts --compile js",
-    "compile:scss": "sgmf-scripts --compile css",
+    "compile:js": "node ../../../storefront-reference-architecture-master/node_modules/sgmf-scripts/index.js --compile js",
+    "compile:scss": "node ../../../storefront-reference-architecture-master/node_modules/sgmf-scripts/index.js --compile css",
     "build": "npm run compile:js && npm run compile:scss",
-    "watch": "sgmf-scripts --watch"
+    "watch": "node ../../../storefront-reference-architecture-master/node_modules/sgmf-scripts/index.js --watch"
   },
   "devDependencies": {
     "autoprefixer": "^10.4.16",
@@ -37,5 +37,8 @@
   "browserslist": [
     "last 2 versions",
     "ie >= 10"
-  ]
+  ],
+  "paths": {
+    "base": "../../../storefront-reference-architecture-master/cartridges/app_storefront_base"
+  }
 }

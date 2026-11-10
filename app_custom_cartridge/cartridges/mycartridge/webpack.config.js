@@ -1,10 +1,23 @@
 'use strict';
 
 var path = require('path');
-var RemoveEmptyScriptsPlugin = require('webpack-remove-empty-scripts');
-var MiniCssExtractPlugin = require('mini-css-extract-plugin');
-var CssMinimizerPlugin = require('css-minimizer-webpack-plugin');
-var sgmfScripts = require('sgmf-scripts');
+var baseModules = path.resolve(__dirname, '../../../storefront-reference-architecture-master/node_modules');
+var localModules = path.resolve(__dirname, 'node_modules');
+
+function resolveModule(moduleName) {
+    try {
+        return require(moduleName);
+    } catch (e) {
+        return require(path.join(baseModules, moduleName));
+    }
+}
+
+var RemoveEmptyScriptsPlugin = resolveModule('webpack-remove-empty-scripts');
+var MiniCssExtractPlugin = resolveModule('mini-css-extract-plugin');
+var CssMinimizerPlugin = resolveModule('css-minimizer-webpack-plugin');
+var sgmfScripts = resolveModule('sgmf-scripts');
+var autoprefixer = resolveModule('autoprefixer');
+var sass = resolveModule('sass');
 
 var cartridgeStatic = path.resolve('./cartridges/mycartridge/cartridge/static');
 
@@ -17,6 +30,12 @@ module.exports = [
             path: cartridgeStatic,
             filename: '[name].js'
         },
+        resolve: {
+            modules: [localModules, baseModules, 'node_modules']
+        },
+        resolveLoader: {
+            modules: [localModules, baseModules, 'node_modules']
+        },
         module: {
             rules: [
                 {
@@ -25,8 +44,14 @@ module.exports = [
                     use: {
                         loader: 'babel-loader',
                         options: {
-                            presets: ['@babel/preset-env'],
-                            plugins: ['@babel/plugin-proposal-object-rest-spread'],
+                            presets: [
+                                [
+                                    require.resolve('@babel/preset-env', { paths: [baseModules, localModules] })
+                                ]
+                            ],
+                            plugins: [
+                                require.resolve('@babel/plugin-proposal-object-rest-spread', { paths: [baseModules, localModules] })
+                            ],
                             cacheDirectory: true
                         }
                     }
@@ -40,6 +65,12 @@ module.exports = [
         entry: sgmfScripts.createScssPath(),
         output: {
             path: cartridgeStatic
+        },
+        resolve: {
+            modules: [localModules, baseModules, 'node_modules']
+        },
+        resolveLoader: {
+            modules: [localModules, baseModules, 'node_modules']
         },
         module: {
             rules: [
@@ -58,16 +89,16 @@ module.exports = [
                             loader: 'postcss-loader',
                             options: {
                                 postcssOptions: {
-                                    plugins: [require('autoprefixer')()]
+                                    plugins: [autoprefixer()]
                                 }
                             }
                         },
                         {
                             loader: 'sass-loader',
                             options: {
-                                implementation: require('sass'),
+                                implementation: sass,
                                 sassOptions: {
-                                    includePaths: [path.resolve('node_modules')]
+                                    includePaths: [localModules, baseModules]
                                 }
                             }
                         }

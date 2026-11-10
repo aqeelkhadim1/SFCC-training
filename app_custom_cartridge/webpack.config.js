@@ -19,6 +19,12 @@ var sgmfScripts = resolveModule('sgmf-scripts');
 var autoprefixer = resolveModule('autoprefixer');
 var sass = resolveModule('sass');
 
+var cartridgeName = 'app_custom_cartridge';
+var cIndex = process.argv.indexOf('--cartridgeName');
+if (cIndex !== -1 && process.argv[cIndex + 1]) {
+    cartridgeName = process.argv[cIndex + 1];
+}
+
 var jsFiles = sgmfScripts.createJsPath();
 var scssFiles = sgmfScripts.createScssPath();
 
@@ -28,7 +34,7 @@ module.exports = [
         name: 'js',
         entry: jsFiles,
         output: {
-            path: path.resolve('./cartridges/app_custom_cartridge/cartridge/static'),
+            path: path.resolve('./cartridges/' + cartridgeName + '/cartridge/static'),
             filename: '[name].js'
         },
         resolve: {
@@ -65,7 +71,7 @@ module.exports = [
         name: 'scss',
         entry: scssFiles,
         output: {
-            path: path.resolve('./cartridges/app_custom_cartridge/cartridge/static')
+            path: path.resolve('./cartridges/' + cartridgeName + '/cartridge/static')
         },
         resolve: {
             modules: [localModules, baseModules, 'node_modules']

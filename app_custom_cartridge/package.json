@@ -14,9 +14,11 @@
   "scripts": {
     "compile:js": "node ../storefront-reference-architecture-master/node_modules/sgmf-scripts/index.js --compile js",
     "compile:scss": "node ../storefront-reference-architecture-master/node_modules/sgmf-scripts/index.js --compile css",
+    "compile:form:js": "node ../storefront-reference-architecture-master/node_modules/sgmf-scripts/index.js --compile js --cartridgeName form_custom_cartridge",
+    "compile:form:scss": "node ../storefront-reference-architecture-master/node_modules/sgmf-scripts/index.js --compile css --cartridgeName form_custom_cartridge",
     "build:app_custom_cartridge": "npm run compile:js && npm run compile:scss",
+    "build:form_custom_cartridge": "npm run compile:form:js && npm run compile:form:scss",
     "build:mycartridge": "npm --prefix cartridges/mycartridge run build",
-    "build:form_custom_cartridge": "npm --prefix cartridges/form_custom_cartridge run build",
     "build": "npm run build:app_custom_cartridge && npm run build:mycartridge && npm run build:form_custom_cartridge",
     "watch:app_custom_cartridge": "node ../storefront-reference-architecture-master/node_modules/sgmf-scripts/index.js --watch",
     "watch": "node scripts/watch.js"

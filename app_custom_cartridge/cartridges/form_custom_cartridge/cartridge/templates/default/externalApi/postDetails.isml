@@ -1,0 +1,109 @@
+<isdecorate template="common/layout/page">
+    <isscript>
+        var assets = require('*/cartridge/scripts/assets.js');
+        assets.addJs('/js/externalApi.js');
+        assets.addCss('/css/externalApi.css');
+    </isscript>
+
+    <div class="container my-5 external-api-container">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <!--- Breadcrumb / Top Navigation --->
+                <div class="mb-3">
+                    <a href="${URLUtils.url('ExternalApi-Show')}" class="text-decoration-none text-secondary">
+                        &lt; ${Resource.msg('link.back.to.posts', 'externalApi', null)}
+                    </a>
+                </div>
+
+                <!--- Flash Message Container (Success / Error alerts) --->
+                <div id="api-alert-container">
+                    <isif condition="${pdict.error}">
+                        <div class="alert alert-danger shadow-sm border-0" role="alert">
+                            <h5 class="alert-heading font-weight-bold mb-1">
+                                <i class="fa fa-exclamation-circle mr-2" aria-hidden="true"></i> ${Resource.msg('heading.unavailable', 'externalApi', null)}
+                            </h5>
+                            <p class="mb-3">${pdict.error}</p>
+                            <hr />
+                            <a href="${URLUtils.url('ExternalApi-Show')}" class="btn btn-outline-danger btn-sm">
+                                ${Resource.msg('btn.return.listing', 'externalApi', null)}
+                            </a>
+                        </div>
+                    </isif>
+                </div>
+
+                <isif condition="${pdict.post}">
+                    <!--- Post Details Card --->
+                    <div class="card shadow-sm border-0" id="post-details-card">
+                        <div class="card-header bg-primary text-white py-3 d-flex justify-content-between align-items-center">
+                            <h5 class="m-0 font-weight-bold">
+                                ${Resource.msgf('heading.post.details', 'externalApi', null, pdict.post.id)}
+                            </h5>
+                            <span id="post-details-author" class="badge badge-light px-3 py-2 font-weight-bold">
+                                ${Resource.msgf('badge.author', 'externalApi', null, pdict.post.userId)}
+                            </span>
+                        </div>
+                        <div class="card-body p-4">
+                            <!--- Title Section --->
+                            <div class="mb-4">
+                                <label class="text-uppercase text-muted font-weight-bold small tracking-wide">
+                                    ${Resource.msg('label.col.title', 'externalApi', null)}
+                                </label>
+                                <h3 id="post-details-title" class="font-weight-bold text-dark mt-1">
+                                    ${pdict.post.title}
+                                </h3>
+                            </div>
+
+                            <hr />
+
+                            <!--- Description / Body Section --->
+                            <div class="mb-4">
+                                <label class="text-uppercase text-muted font-weight-bold small tracking-wide">
+                                    ${Resource.msg('label.col.description', 'externalApi', null)}
+                                </label>
+                                <p id="post-details-body" class="lead text-secondary mt-1 line-height-relaxed" style="white-space: pre-line;">
+                                    ${pdict.post.body}
+                                </p>
+                            </div>
+
+                            <hr />
+
+                            <!--- Metadata Info Box --->
+                            <div class="row text-muted small bg-light rounded p-3 mx-0 mb-4">
+                                <div class="col-sm-6 mb-2 mb-sm-0">
+                                    <strong>${Resource.msg('label.source', 'externalApi', null)}</strong> ${Resource.msg('value.source', 'externalApi', null)}
+                                </div>
+                                <div class="col-sm-6 text-sm-right">
+                                    <strong>${Resource.msg('label.service', 'externalApi', null)}</strong> ${Resource.msg('value.service', 'externalApi', null)}
+                                </div>
+                            </div>
+
+                            <!--- Actions --->
+                            <div class="d-flex justify-content-between align-items-center">
+                                <a href="${URLUtils.url('ExternalApi-Show')}" class="btn btn-outline-secondary">
+                                    &lt; ${Resource.msg('link.back.to.list', 'externalApi', null)}
+                                </a>
+                                <div>
+                                    <button type="button" class="btn btn-warning px-4 font-weight-bold shadow-sm btn-edit-post"
+                                        data-bs-toggle="modal" data-bs-target="#postActionModal"
+                                        data-mode="edit"
+                                        data-id="${pdict.post.id}"
+                                        data-userid="${pdict.post.userId}"
+                                        data-title="${pdict.post.title}"
+                                        data-body="${pdict.post.body}"
+                                        data-url="${URLUtils.url('ExternalApi-UpdatePost', 'id', pdict.post.id)}"
+                                        data-modal-title="${Resource.msg('heading.edit.post.modal', 'externalApi', null)}"
+                                        data-submit-label="${Resource.msg('button.form.save', 'externalApi', null)}">
+                                        <i class="fa fa-pencil mr-1" aria-hidden="true"></i> ${Resource.msg('button.action.edit', 'externalApi', null)}
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </isif>
+            </div>
+        </div>
+    </div>
+
+    <!--- Single Reusable Bootstrap Modal (Edit action on Details Page) --->
+    <isinclude template="externalApi/components/postActionModal" />
+</isdecorate>

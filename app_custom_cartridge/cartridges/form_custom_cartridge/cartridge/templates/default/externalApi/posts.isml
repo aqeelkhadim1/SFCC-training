@@ -1,0 +1,190 @@
+<isdecorate template="common/layout/page">
+    <isscript>
+        var assets = require('*/cartridge/scripts/assets.js');
+        assets.addJs('/js/externalApi.js');
+        assets.addCss('/css/externalApi.css');
+    </isscript>
+
+    <div class="container my-4 external-api-container">
+        <!--- Header aur Top Controls --->
+        <div class="row align-items-center mb-4">
+            <div class="col-md-7">
+                <h1 class="h2 text-primary font-weight-bold mb-1">${Resource.msg('heading.posts', 'externalApi', null)}</h1>
+                <p class="text-muted mb-0">${Resource.msg('subheading.posts', 'externalApi', null)}</p>
+            </div>
+            <div class="col-md-5 text-md-right mt-3 mt-md-0">
+                <button type="button" class="btn btn-primary shadow-sm" id="btn-open-create-modal"
+                    data-bs-toggle="modal" data-bs-target="#postActionModal"
+                    data-mode="create"
+                    data-url="${URLUtils.url('ExternalApi-SavePost')}"
+                    data-modal-title="${Resource.msg('heading.create.post', 'externalApi', null)}"
+                    data-submit-label="${Resource.msg('button.form.create', 'externalApi', null)}">
+                    <i class="fa fa-plus-circle mr-1" aria-hidden="true"></i> ${Resource.msg('button.create.new.post', 'externalApi', null)}
+                </button>
+            </div>
+        </div>
+
+        <!--- Flash Message Container (Success / Error alerts) --->
+        <div id="api-alert-container">
+            <isif condition="${pdict.error}">
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <strong><isprint value="${Resource.msg('heading.unavailable', 'externalApi', null)}" />:</strong> ${pdict.error}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            </isif>
+        </div>
+
+        <!--- Posts Table Card --->
+        <div class="card shadow-sm border-0 mb-4">
+            <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                <h6 class="m-0 font-weight-bold text-dark">
+                    ${Resource.msg('card.title.records.list', 'externalApi', null)}
+                </h6>
+                <span class="badge badge-primary px-3 py-2">
+                    ${Resource.msgf('badge.total.posts', 'externalApi', null, pdict.pagination.totalRecords)}
+                </span>
+            </div>
+            <div class="card-body p-0">
+                <isif condition="${pdict.posts && pdict.posts.length > 0}">
+                    <div class="table-responsive">
+                        <table class="table table-hover table-striped mb-0 text-left" id="posts-table"
+                            data-view-url="${URLUtils.url('ExternalApi-ViewPost')}"
+                            data-update-url="${URLUtils.url('ExternalApi-UpdatePost')}"
+                            data-delete-url="${URLUtils.url('ExternalApi-DeletePost')}"
+                            data-view-label="${Resource.msg('button.action.view', 'externalApi', null)}"
+                            data-edit-label="${Resource.msg('button.action.edit', 'externalApi', null)}"
+                            data-delete-label="${Resource.msg('button.action.delete', 'externalApi', null)}"
+                            data-edit-modal-heading="${Resource.msg('heading.edit.post.modal', 'externalApi', null)}"
+                            data-edit-submit-label="${Resource.msg('button.form.save', 'externalApi', null)}"
+                            data-delete-modal-heading="${Resource.msg('modal.delete.title', 'externalApi', null)}"
+                            data-delete-submit-label="${Resource.msg('modal.delete.btn.confirm', 'externalApi', null)}">
+                            <thead class="thead-light">
+                                <tr>
+                                    <th scope="col" style="width: 8%;">${Resource.msg('label.col.id', 'externalApi', null)}</th>
+                                    <th scope="col" style="width: 10%;">${Resource.msg('label.col.userid', 'externalApi', null)}</th>
+                                    <th scope="col" style="width: 27%;">${Resource.msg('label.col.title', 'externalApi', null)}</th>
+                                    <th scope="col" style="width: 35%;">${Resource.msg('label.col.description', 'externalApi', null)}</th>
+                                    <th scope="col" class="text-center" style="width: 20%;">${Resource.msg('label.col.actions', 'externalApi', null)}</th>
+                                </tr>
+                            </thead>
+                            <tbody id="posts-table-body">
+                                <isloop items="${pdict.posts}" var="post">
+                                    <tr id="post-row-${post.id}">
+                                        <td class="align-middle font-weight-bold text-muted">${post.id}</td>
+                                        <td class="align-middle">
+                                            <span class="badge badge-light border text-secondary px-2 py-1">
+                                                ${Resource.msgf('badge.user.id', 'externalApi', null, post.userId)}
+                                            </span>
+                                        </td>
+                                        <td class="align-middle font-weight-bold text-dark post-title-cell">
+                                            ${post.title}
+                                        </td>
+                                        <td class="align-middle text-muted post-body-cell">
+                                            ${post.body}
+                                        </td>
+                                        <td class="align-middle text-center">
+                                            <div class="btn-group btn-group-sm" role="group" aria-label="Post Actions">
+                                                <a href="${URLUtils.url('ExternalApi-ViewPost', 'id', post.id)}"
+                                                    class="btn btn-outline-info" title="View Post Details">
+                                                    ${Resource.msg('button.action.view', 'externalApi', null)}
+                                                </a>
+                                                <button type="button" class="btn btn-outline-warning btn-edit-post"
+                                                    data-bs-toggle="modal" data-bs-target="#postActionModal"
+                                                    data-mode="edit"
+                                                    data-id="${post.id}"
+                                                    data-userid="${post.userId}"
+                                                    data-title="${post.title}"
+                                                    data-body="${post.body}"
+                                                    data-url="${URLUtils.url('ExternalApi-UpdatePost', 'id', post.id)}"
+                                                    data-modal-title="${Resource.msg('heading.edit.post.modal', 'externalApi', null)}"
+                                                    data-submit-label="${Resource.msg('button.form.save', 'externalApi', null)}"
+                                                    title="${Resource.msg('button.action.edit', 'externalApi', null)}">
+                                                    ${Resource.msg('button.action.edit', 'externalApi', null)}
+                                                </button>
+                                                <button type="button" class="btn btn-outline-danger btn-delete-post"
+                                                    data-bs-toggle="modal" data-bs-target="#postActionModal"
+                                                    data-mode="delete"
+                                                    data-id="${post.id}"
+                                                    data-title="${post.title}"
+                                                    data-url="${URLUtils.url('ExternalApi-DeletePost', 'id', post.id)}"
+                                                    data-modal-title="${Resource.msg('modal.delete.title', 'externalApi', null)}"
+                                                    data-submit-label="${Resource.msg('modal.delete.btn.confirm', 'externalApi', null)}"
+                                                    title="Delete Post">
+                                                    ${Resource.msg('button.action.delete', 'externalApi', null)}
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </isloop>
+                            </tbody>
+                        </table>
+                    </div>
+                <iselse/>
+                    <div class="text-center py-5">
+                        <i class="fa fa-folder-open-o fa-3x text-muted mb-3" aria-hidden="true"></i>
+                        <h5 class="text-muted">${Resource.msg('msg.no.records', 'externalApi', null)}</h5>
+                        <p class="text-secondary small">${Resource.msg('msg.no.records.detail', 'externalApi', null)}</p>
+                    </div>
+                </isif>
+            </div>
+
+            <!--- Server-side Numbered Pagination Bar + View More Redirect --->
+            <isif condition="${pdict.pagination && pdict.pagination.totalPages > 1}">
+                <div class="card-footer bg-white py-3 d-flex flex-column flex-md-row justify-content-between align-items-center">
+                    <div class="text-muted small mb-2 mb-md-0">
+                        ${Resource.msgf('pagination.showing', 'externalApi', null, pdict.pagination.page, pdict.pagination.totalPages)}
+                    </div>
+
+                    <!--- Center: View More Button that redirects to ExternalApi-ViewMore --->
+                    <div class="my-2 my-md-0">
+                        <a href="${URLUtils.url('ExternalApi-ViewMore')}" class="btn btn-outline-primary btn-sm font-weight-bold shadow-sm" title="${Resource.msg('button.switch.to.viewmore', 'externalApi', null)}">
+                            <i class="fa fa-arrow-circle-down mr-1" aria-hidden="true"></i> ${Resource.msg('button.view.more', 'externalApi', null)}
+                        </a>
+                    </div>
+
+                    <!--- Right: Numbered Pagination Controls --->
+                    <nav aria-label="Posts Navigation">
+                        <ul class="pagination pagination-sm m-0">
+                            <!--- Previous Button --->
+                            <isif condition="${pdict.pagination.hasPrev}">
+                                <li class="page-item">
+                                    <a class="page-link"
+                                        href="${URLUtils.url('ExternalApi-Show', 'page', pdict.pagination.prevPage)}">
+                                        ${Resource.msg('pagination.prev', 'externalApi', null)}
+                                    </a>
+                                </li>
+                            <iselse/>
+                                <li class="page-item disabled">
+                                    <span class="page-link">${Resource.msg('pagination.prev', 'externalApi', null)}</span>
+                                </li>
+                            </isif>
+
+                            <li class="page-item active" aria-current="page">
+                                <span class="page-link">
+                                    ${pdict.pagination.page}
+                                </span>
+                            </li>
+
+                            <!--- Next Button --->
+                            <isif condition="${pdict.pagination.hasNext}">
+                                <li class="page-item">
+                                    <a class="page-link"
+                                        href="${URLUtils.url('ExternalApi-Show', 'page', pdict.pagination.nextPage)}">
+                                        ${Resource.msg('pagination.next', 'externalApi', null)}
+                                    </a>
+                                </li>
+                            <iselse/>
+                                <li class="page-item disabled">
+                                    <span class="page-link">${Resource.msg('pagination.next', 'externalApi', null)}</span>
+                                </li>
+                            </isif>
+                        </ul>
+                    </nav>
+                </div>
+            </isif>
+        </div>
+    </div>
+
+    <!--- Single Reusable Bootstrap Modal (Create / Edit / Delete) --->
+    <isinclude template="externalApi/components/postActionModal" />
+</isdecorate>
