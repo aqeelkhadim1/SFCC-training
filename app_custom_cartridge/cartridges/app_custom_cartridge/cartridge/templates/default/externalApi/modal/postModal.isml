@@ -11,7 +11,7 @@
                 data-delete-action="${Resource.msg('modal.delete.btn.delete', 'externalApi', null)}">
                 <input type="hidden" name="mode" value="create">
                 <input type="hidden" name="id">
-                <input type="hidden" name="${pdict.csrf.tokenName}" value="${pdict.csrf.token}">
+                <input type="hidden" name="${dw.web.CSRFProtection.getTokenName()}" value="${dw.web.CSRFProtection.generateToken()}">
 
                 <div class="modal-header">
                     <h5 class="modal-title" id="post-modal-title"></h5>

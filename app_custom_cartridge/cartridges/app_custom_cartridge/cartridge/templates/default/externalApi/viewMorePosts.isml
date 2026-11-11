@@ -31,14 +31,11 @@
             </isif>
         </div>
 
-        <div id="posts-config" data-get-url="${URLUtils.url('ExternalApi-GetPosts')}"
+        <div id="posts-config" data-get-url="${URLUtils.url('ExternalApi-LoadMore')}"
             data-view-url="${URLUtils.url('ExternalApi-ViewPost')}"
             data-save-url="${URLUtils.url('ExternalApi-SavePost')}"
             data-update-url="${URLUtils.url('ExternalApi-UpdatePost')}"
-            data-delete-url="${URLUtils.url('ExternalApi-DeletePost')}"
-            data-restore-page="${pdict.restorePage || 1}"
-            data-csrf-name="${pdict.csrf.tokenName}"
-            data-csrf-token="${pdict.csrf.token}">
+            data-delete-url="${URLUtils.url('ExternalApi-DeletePost')}">
         </div>
 
         <div class="card">
@@ -66,48 +63,16 @@
                     </thead>
 
                     <tbody id="posts-table-body">
-                        <isloop items="${pdict.posts}" var="post">
-                            <tr data-id="${post.id}">
-                                <td>${post.id}</td>
-                                <td>${post.userId}</td>
-                                <td>${post.title}</td>
-                                <td>${post.body}</td>
-                                <td class="actions-cell">
-                                    <div class="action-btn-group">
-                                        <button type="button" class="btn btn-sm btn-outline-info btn-action js-view"
-                                             data-id="${post.id}"
-                                             title="${Resource.msg('btn.view', 'externalApi', null)}"
-                                             aria-label="${Resource.msg('btn.view', 'externalApi', null)}">
-                                            <i class="fa fa-eye" aria-hidden="true"></i>
-                                        </button>
-
-                                        <button type="button"
-                                             class="btn btn-sm btn-outline-secondary btn-action js-edit"
-                                             data-id="${post.id}"
-                                             title="${Resource.msg('btn.edit', 'externalApi', null)}"
-                                             aria-label="${Resource.msg('btn.edit', 'externalApi', null)}">
-                                            <i class="fa fa-pencil" aria-hidden="true"></i>
-                                        </button>
-
-                                        <button type="button" class="btn btn-sm btn-outline-danger btn-action js-delete"
-                                             data-id="${post.id}"
-                                             title="${Resource.msg('btn.delete', 'externalApi', null)}"
-                                             aria-label="${Resource.msg('btn.delete', 'externalApi', null)}">
-                                            <i class="fa fa-trash" aria-hidden="true"></i>
-                                        </button>
-                                    </div>
-                                </td>
-                            </tr>
-                        </isloop>
+                        <isinclude template="externalApi/components/postRows" />
                     </tbody>
                 </table>
             </div>
         </div>
 
         <div class="text-center my-4">
-            <button type="button" id="btn-view-more" class="btn btn-primary btn-sm px-3 py-1 shadow-sm"
-                data-next-page="2"
-                data-total-pages="${pdict.pagination.totalPages}"
+            <button type="button" id="btn-view-more"
+                class="btn btn-primary btn-sm px-3 py-1 shadow-sm ${!pdict.pagination.hasNext ? 'd-none' : ''}"
+                data-next-page="${pdict.pagination.page + 1}" data-total-pages="${pdict.pagination.totalPages}"
                 data-loading-text="${Resource.msg('btn.loading', 'externalApi', null)}">
                 <span>${Resource.msg('btn.view.more', 'externalApi', null)}</span>
             </button>

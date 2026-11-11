@@ -1,4 +1,6 @@
 /* global $ */
+/* eslint-disable require-jsdoc */
+
 'use strict';
 
 var initialized = false;
@@ -90,9 +92,10 @@ function init() {
             valid = false;
         }
         if (!body || body.length < 10 || body.length > 500) {
-            fieldError($body, !body ? 'Description is required.' : body.length < 10
-                ? 'Description must be at least 10 characters.'
-                : 'Description must not exceed 500 characters.');
+            var bodyError = 'Description must not exceed 500 characters.';
+            if (!body) bodyError = 'Description is required.';
+            else if (body.length < 10) bodyError = 'Description must be at least 10 characters.';
+            fieldError($body, bodyError);
             valid = false;
         }
         return valid;
@@ -203,7 +206,9 @@ function init() {
     $table.on('click', '.js-view, .js-edit, .js-delete', function () {
         var $button = $(this);
         var id = $button.data('id');
-        var mode = $button.hasClass('js-delete') ? 'delete' : $button.hasClass('js-edit') ? 'edit' : 'view';
+        var mode = 'view';
+        if ($button.hasClass('js-delete')) mode = 'delete';
+        else if ($button.hasClass('js-edit')) mode = 'edit';
 
         if (mode === 'delete') {
             selectedId = id;
@@ -232,7 +237,6 @@ function init() {
         var post;
 
         if (mode === 'delete') {
-            if (localPosts[selectedId]) return removePost();
             $submit.prop('disabled', true).text('Deleting...');
             api(urls.delete, 'POST', $form.serialize()).done(function (response) {
                 if (!responseError(response, 'Unable to delete post.')) removePost();
@@ -244,14 +248,16 @@ function init() {
 
         if (!validate($form)) return;
         post = formPost($form);
-        if (mode === 'edit' && localPosts[post.id]) return update(post);
 
         $submit.prop('disabled', true).text(mode === 'create' ? 'Saving...' : 'Updating...');
         api(mode === 'create' ? urls.save : urls.update, 'POST', $form.serialize())
             .done(function (response) {
                 if (responseError(response, mode === 'create' ? 'Unable to create post.' : 'Unable to update post.')) return;
                 post = $.extend({}, post, response || {});
-                if (mode === 'edit') return update(post);
+                if (mode === 'edit') {
+                    update(post);
+                    return;
+                }
                 post.id = post.id || 101;
                 localPosts[post.id] = post;
                 $table.prepend(row(post));
@@ -280,10 +286,14 @@ function init() {
     function loadMore(page, persist) {
         var html = $more.html();
         $more.prop('disabled', true).text($more.data('loading-text') || 'Loading...');
-        return api(urls.get, 'GET', { page: page, pageSize: PAGE_SIZE }).done(function (response) {
-            if (responseError(response, 'Unable to retrieve posts.')) return;
-            var posts = response.posts || [];
-            render(posts, true);
+        return $.ajax({
+            url: urls.get,
+            type: 'GET',
+            data: { page: page, pageSize: PAGE_SIZE },
+            dataType: 'html'
+        }).done(function (responseHtml) {
+            var $rows = $(responseHtml).filter('tr');
+            $table.append($rows);
             var loaded = $table.children('tr').length;
             $('#loaded-count').text(loaded);
             $more.data('next-page', page + 1);
@@ -293,22 +303,18 @@ function init() {
                 currentUrl.searchParams.set('pageSize', PAGE_SIZE);
                 window.history.replaceState({}, '', currentUrl.toString());
             }
-            if (!posts.length || !response.pagination.hasNext || loaded >= response.pagination.totalCount) {
+            if (!$rows.length || loaded >= (parseInt($count.text(), 10) || 0)) {
                 $more.hide();
                 $('#all-loaded-msg').removeClass('d-none').show();
             }
-        }).fail(requestError).always(function () { $more.prop('disabled', false).html(html); });
+        }).fail(function (xhr) {
+            requestError(xhr, 'Unable to retrieve posts.');
+        }).always(function () {
+            $more.prop('disabled', false).html(html);
+        });
     }
 
     $more.on('click', function () { loadMore(parseInt($more.data('next-page'), 10) || 2, true); });
-
-    var restorePage = parseInt($config.data('restore-page'), 10) || 1;
-    var restore = 2;
-    function restoreNext() {
-        if (restore > restorePage) return;
-        loadMore(restore, false).done(function () { restore += 1; restoreNext(); });
-    }
-    restoreNext();
 
     if ($more.length && 'IntersectionObserver' in window) {
         new IntersectionObserver(function (entries) {

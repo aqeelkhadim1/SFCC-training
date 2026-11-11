@@ -60,7 +60,7 @@ function callService(config) {
 }
 
 function invalid(message) {
-    return { valid: false, message: message };
+    return { valid: false, message: message, status: 400 };
 }
 
 /**
@@ -132,6 +132,9 @@ function calculatePagination(allRecords, page, pageSize, endpoint) {
     var targetEndpoint = endpoint || 'ExternalApi-Show';
     var paging = new PagingModel(records.iterator(), records.size());
     var pageRecords = [];
+    var totalPages = Math.max(1, Math.ceil(records.size() / size));
+
+    currentPage = Math.min(Math.max(1, currentPage), totalPages);
 
     paging.setPageSize(size);
     paging.setStart((currentPage - 1) * size);
@@ -184,56 +187,65 @@ function emptyPagination(page) {
     };
 }
 
+function firstRecords(records, count) {
+    var items = [];
+    var limit = Math.min(records.length, count);
+    for (var i = 0; i < limit; i++) items.push(records[i]);
+    return items;
+}
+
 /**
  * Returns frontend-ready listing data for page, AJAX and View More restore.
  */
 function getPosts(queryString, endpoint, restoreMode) {
     var params = getPagingParams(queryString);
-    var displayPage = restoreMode ? 1 : params.page;
     var result = requestPost(HTTP_METHODS.GET);
     var paged = result.ok && result.data
-        ? calculatePagination(result.data, displayPage, params.pageSize, endpoint)
-        : { records: [], pagination: emptyPagination(displayPage) };
+        ? calculatePagination(result.data, params.page, params.pageSize, endpoint)
+        : { records: [], pagination: emptyPagination(params.page) };
     var response = {
         success: result.ok,
         error: result.ok ? null : 'Unable to retrieve posts',
         errorMessage: result.ok ? null : 'Posts are temporarily unavailable.',
-        posts: paged.records,
-        pagination: paged.pagination
+        posts: restoreMode && result.ok
+            ? firstRecords(result.data, paged.pagination.page * params.pageSize)
+            : paged.records,
+        pagination: paged.pagination,
+        status: result.ok ? 200 : 502
     };
-
-    if (restoreMode) {
-        response.restorePage = result.ok
-            ? Math.min(params.page, paged.pagination.totalPages)
-            : params.page;
-    }
     return response;
 }
 
-function toClientResponse(result, fallbackMessage, successData) {
-    if (!result || !result.ok) return { success: false, error: fallbackMessage };
+function toClientResponse(result, fallbackMessage, successData, errorStatus) {
+    if (!result || !result.ok) {
+        return { success: false, status: errorStatus || 502, error: fallbackMessage };
+    }
     return successData === undefined ? result.data : successData;
 }
 
 function getPostById(postId) {
     var validation = validatePostId(postId);
     return validation.valid
-        ? toClientResponse(requestPost(HTTP_METHODS.GET, validation.id), 'Post not found')
-        : { success: false, error: validation.message };
+        ? toClientResponse(requestPost(HTTP_METHODS.GET, validation.id), 'Post not found', undefined, 404)
+        : { success: false, status: validation.status, error: validation.message };
 }
 
 function createPost(form) {
     var validation = validatePostPayload(form);
     return validation.valid
         ? toClientResponse(requestPost(HTTP_METHODS.POST, null, validation.payload), 'Unable to create post')
-        : { success: false, error: validation.message };
+        : { success: false, status: validation.status, error: validation.message };
 }
 
 function updatePost(postId, form) {
     var idValidation = validatePostId(postId);
     var formValidation = validatePostPayload(form);
-    if (!idValidation.valid) return { success: false, error: idValidation.message };
-    if (!formValidation.valid) return { success: false, error: formValidation.message };
+    if (!idValidation.valid) {
+        return { success: false, status: idValidation.status, error: idValidation.message };
+    }
+    if (!formValidation.valid) {
+        return { success: false, status: formValidation.status, error: formValidation.message };
+    }
     return toClientResponse(
         requestPost(HTTP_METHODS.PUT, idValidation.id, formValidation.payload),
         'Unable to update post'
@@ -244,7 +256,7 @@ function deletePost(postId) {
     var validation = validatePostId(postId);
     return validation.valid
         ? toClientResponse(requestPost(HTTP_METHODS.DELETE, validation.id), 'Unable to delete post', { success: true })
-        : { success: false, error: validation.message };
+        : { success: false, status: validation.status, error: validation.message };
 }
 
 module.exports = {

@@ -26,8 +26,8 @@ var service = LocalServiceRegistry.createService('jsonplaceholder', {
         // Log invocation
         Logger.info('Service Invocation: [{0}] {1}', method, requestUrl);
 
-        // Send payload and Content-Type only for write operations (POST, PUT, PATCH)
-        if ((method === 'POST' || method === 'PUT' || method === 'PATCH') && options.payload) {
+        // Send payload and Content-Type for non-GET requests when payload is provided
+        if (method !== 'GET' && options.payload) {
             var payload = JSON.stringify(options.payload);
             svc.addHeader('Content-Type', 'application/json; charset=UTF-8');
             Logger.debug('Request Payload: {0}', payload);

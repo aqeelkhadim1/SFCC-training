@@ -1,7 +1,6 @@
 'use strict';
 
 var server = require('server');
-var URLUtils = require('dw/web/URLUtils');
 
 // SFCC resolves cartridge wildcard aliases at runtime.
 // @ts-ignore
@@ -10,18 +9,10 @@ var csrfProtection = require('*/cartridge/scripts/middleware/csrf');
 var externalApiHelper = require('*/cartridge/scripts/helpers/externalApiHelper');
 
 /**
- * Default redirect routes
- */
-server.get('ExternalApi', function (req, res, next) {
-    res.redirect(URLUtils.url('ExternalApi-Show'));
-    return next();
-});
-
-/**
  * Uses SFCC PagingModel to slice 100 posts into 10 records per page.
  * Flow: Controller -> Helper -> Service
  */
-server.get('Show', csrfProtection.generateToken, function (req, res, next) {
+server.get('Show', function (req, res, next) {
     res.render('externalApi/posts', externalApiHelper.getPosts(
         req.querystring,
         'ExternalApi-Show',
@@ -33,7 +24,7 @@ server.get('Show', csrfProtection.generateToken, function (req, res, next) {
 /**
  * Renders dedicated View More (Infinite Feed) page.
  */
-server.get('ViewMore', csrfProtection.generateToken, function (req, res, next) {
+server.get('ViewMore', function (req, res, next) {
     res.render('externalApi/viewMorePosts', externalApiHelper.getPosts(
         req.querystring,
         'ExternalApi-ViewMore',
@@ -48,6 +39,15 @@ server.get('ViewMore', csrfProtection.generateToken, function (req, res, next) {
 server.get('GetPosts', function (req, res, next) {
     var responseData = externalApiHelper.getPosts(req.querystring, 'ExternalApi-GetPosts', false);
     res.json(responseData);
+    return next();
+});
+
+/**
+ * Returns the next page as reusable table-row HTML for View More.
+ */
+server.get('LoadMore', function (req, res, next) {
+    var viewData = externalApiHelper.getPosts(req.querystring, 'ExternalApi-LoadMore', false);
+    res.render('externalApi/components/postRows', viewData);
     return next();
 });
 

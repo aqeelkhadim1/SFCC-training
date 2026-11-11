@@ -1,0 +1,27 @@
+<isloop items="${pdict.posts}" var="post">
+    <tr data-id="${post.id}">
+        <td>${post.id}</td>
+        <td>${post.userId}</td>
+        <td>${post.title}</td>
+        <td>${post.body}</td>
+        <td class="actions-cell">
+            <div class="action-btn-group">
+                <button type="button" class="btn btn-sm btn-outline-info btn-action js-view"
+                    data-id="${post.id}" title="${Resource.msg('btn.view', 'externalApi', null)}"
+                    aria-label="${Resource.msg('btn.view', 'externalApi', null)}">
+                    <i class="fa fa-eye" aria-hidden="true"></i>
+                </button>
+                <button type="button" class="btn btn-sm btn-outline-secondary btn-action js-edit"
+                    data-id="${post.id}" title="${Resource.msg('btn.edit', 'externalApi', null)}"
+                    aria-label="${Resource.msg('btn.edit', 'externalApi', null)}">
+                    <i class="fa fa-pencil" aria-hidden="true"></i>
+                </button>
+                <button type="button" class="btn btn-sm btn-outline-danger btn-action js-delete"
+                    data-id="${post.id}" title="${Resource.msg('btn.delete', 'externalApi', null)}"
+                    aria-label="${Resource.msg('btn.delete', 'externalApi', null)}">
+                    <i class="fa fa-trash" aria-hidden="true"></i>
+                </button>
+            </div>
+        </td>
+    </tr>
+</isloop>
