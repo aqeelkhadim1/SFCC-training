@@ -1,4 +1,4 @@
-#dob-calendar-btn {
+.registration #dob-calendar-btn {
   cursor: pointer;
   border-color: #ced4da;
   background-color: #f8f9fa;
@@ -7,19 +7,19 @@
   justify-content: center;
   padding: 0 12px;
 }
-#dob-calendar-btn svg {
+.registration #dob-calendar-btn svg {
   fill: #495057;
   width: 16px;
   height: 16px;
 }
-#dob-calendar-btn:hover {
+.registration #dob-calendar-btn:hover {
   background-color: #e9ecef;
 }
-#dob-calendar-btn:hover svg {
+.registration #dob-calendar-btn:hover svg {
   fill: #212529;
 }
 
-.input-group > .invalid-feedback {
+.registration .input-group > .invalid-feedback {
   width: 100%;
   margin-top: 0.25rem;
 }
