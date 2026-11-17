@@ -1,0 +1,54 @@
+<isdecorate template="common/layout/page">
+    <isscript>
+        var assets = require('*/cartridge/scripts/assets.js');
+        assets.addJs('/js/externalApiCreate.js');
+    </isscript>
+    <div class="container py-4">
+        <h1>Create Post</h1>
+
+        <isif condition="${pdict.serviceError}">
+            <div class="alert alert-danger" role="alert">
+                <isprint value="${pdict.serviceError}" encoding="htmlcontent" />
+            </div>
+        </isif>
+
+        <div id="external-api-form-message" class="alert d-none" role="alert" aria-live="polite"></div>
+        <form action="${pdict.actionUrl}" method="POST" id="external-api-create-form" novalidate>
+            <div class="mb-3">
+                <label for="external-api-user-id" class="form-label">User ID</label>
+                <input id="external-api-user-id" name="userId" type="number" min="1" step="1" required
+                    class="form-control${pdict.errors.userId ? ' is-invalid' : ''}"
+                    value="<isprint value="${pdict.values.userId}" encoding="htmldoublequote"/>"
+                    aria-describedby="external-api-user-id-error">
+                <div class="invalid-feedback" id="external-api-user-id-error">
+                    <isif condition="${pdict.errors.userId}"><isprint value="${pdict.errors.userId}" encoding="htmlcontent" /><iselse/>Enter a positive whole number.</isif>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label for="external-api-title" class="form-label">Title</label>
+                <input id="external-api-title" name="title" type="text" required maxlength="200"
+                    class="form-control${pdict.errors.title ? ' is-invalid' : ''}"
+                    value="<isprint value="${pdict.values.title}" encoding="htmldoublequote"/>"
+                    aria-describedby="external-api-title-error">
+                <div class="invalid-feedback" id="external-api-title-error">
+                    <isif condition="${pdict.errors.title}"><isprint value="${pdict.errors.title}" encoding="htmlcontent" /><iselse/>Title is required.</isif>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label for="external-api-body" class="form-label">Description</label>
+                <textarea id="external-api-body" name="body" required rows="5"
+                    class="form-control${pdict.errors.body ? ' is-invalid' : ''}"
+                    aria-describedby="external-api-body-error"><isprint value="${pdict.values.body}" encoding="htmlcontent" /></textarea>
+                <div class="invalid-feedback" id="external-api-body-error">
+                    <isif condition="${pdict.errors.body}"><isprint value="${pdict.errors.body}" encoding="htmlcontent" /><iselse/>Description is required.</isif>
+                </div>
+            </div>
+
+            <input type="hidden" name="${pdict.csrf.tokenName}" value="${pdict.csrf.token}" />
+            <button class="btn btn-primary" type="submit">Create Post</button>
+            <a class="btn btn-secondary" href="${pdict.backUrl}">Cancel</a>
+        </form>
+    </div>
+</isdecorate>
