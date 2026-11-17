@@ -2,254 +2,160 @@
 
 var base = require('base/login/login');
 
-/**
- * Validates calendar date correctness for DD-MM-YYYY (handles leap years, days per month, future dates).
- * @param {string} str - Date string in DD-MM-YYYY.
- * @returns {boolean} - True if real calendar date and not in the future.
- */
-function isValidCalendarDate(str) {
-    if (!str) {
-        return false;
-    }
-    var match = str.trim().match(/^(\d{2})-(\d{2})-(\d{4})$/);
+var DOB_PATTERN = /^(\d{2})-(\d{2})-(\d{4})$/;
+var PHONE_PATTERN = /^\(\d{3}\) \d{3}-\d{4}$/;
+
+function pad(value) {
+    return ('0' + value).slice(-2);
+}
+
+function isValidDob(value) {
+    var match = value.match(DOB_PATTERN);
+
     if (!match) {
         return false;
     }
 
-    var d = parseInt(match[1], 10);
-    var m = parseInt(match[2], 10);
-    var y = parseInt(match[3], 10);
+    var day = parseInt(match[1], 10);
+    var month = parseInt(match[2], 10);
+    var year = parseInt(match[3], 10);
+    var date = new Date(year, month - 1, day);
+    var today = new Date();
 
-    if (y < 1900 || y > 2100) {
-        return false;
-    }
+    today.setHours(0, 0, 0, 0);
 
-    var date = new Date(Date.UTC(y, m - 1, d));
-    // Verify date didn't roll over (e.g. Feb 31 -> Mar 3 or invalid leap year)
-    if (date.getUTCFullYear() !== y || date.getUTCMonth() !== m - 1 || date.getUTCDate() !== d) {
-        return false;
-    }
-
-    // Must not be a future date (DOB cannot be after today)
-    var now = new Date();
-    var todayUtc = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate());
-    if (date.getTime() > todayUtc) {
-        return false;
-    }
-
-    return true;
+    return year >= 1900
+        && date.getFullYear() === year
+        && date.getMonth() === month - 1
+        && date.getDate() === day
+        && date <= today;
 }
 
-/**
- * Validates phone number format strictly as (999) 999-9999.
- * @param {string} str - Phone string.
- * @returns {boolean} - True if valid format.
- */
-function isValidPhone(str) {
-    if (!str) {
-        return false;
-    }
-    return /^\(\d{3}\) \d{3}-\d{4}$/.test(str.trim());
+function setFieldState($field, $error, valid, message) {
+    $field.toggleClass('is-invalid', !valid).attr('aria-invalid', String(!valid));
+    $error.text(valid ? '' : message);
+    return valid;
 }
 
-/**
- * Validates DOB field and updates UI error state immediately.
- * @param {jQuery} $dob - Input element
- * @param {jQuery} $dobError - Error feedback element
- * @returns {boolean} - True if valid, false otherwise
- */
-function validateDobField($dob, $dobError) {
-    var val = ($dob.val() || '').trim();
-    if (!val) {
-        $dob.addClass('is-invalid');
-        $dobError.text($dob.data('missing-error') || 'Date of Birth is required.');
-        return false;
-    }
-    if (!isValidCalendarDate(val)) {
-        $dob.addClass('is-invalid');
-        $dobError.text($dob.data('pattern-mismatch') || 'Please enter a valid date in DD-MM-YYYY format.');
-        return false;
-    }
-    $dob.removeClass('is-invalid');
-    $dobError.text('');
-    return true;
+function validateDob($field, $error) {
+    var value = $.trim($field.val());
+    var message = value
+        ? $field.data('pattern-mismatch')
+        : $field.data('missing-error');
+
+    return setFieldState($field, $error, !!value && isValidDob(value), message);
 }
 
-/**
- * Validates Phone field and updates UI error state immediately.
- * @param {jQuery} $phone - Input element
- * @param {jQuery} $phoneError - Error feedback element
- * @returns {boolean} - True if valid, false otherwise
- */
-function validatePhoneField($phone, $phoneError) {
-    var val = ($phone.val() || '').trim();
-    if (!val) {
-        $phone.addClass('is-invalid');
-        $phoneError.text($phone.data('missing-error') || 'Phone Number is required.');
-        return false;
-    }
-    if (!isValidPhone(val)) {
-        $phone.addClass('is-invalid');
-        $phoneError.text($phone.data('pattern-mismatch') || 'Please enter a valid phone number in (999) 999-9999 format.');
-        return false;
-    }
-    $phone.removeClass('is-invalid');
-    $phoneError.text('');
-    return true;
+function validatePhone($field, $error) {
+    var value = $.trim($field.val());
+    var message = value
+        ? $field.data('pattern-mismatch')
+        : $field.data('missing-error');
+
+    return setFieldState($field, $error, !!value && PHONE_PATTERN.test(value), message);
 }
 
-/**
- * Attaches real-time live validation events on typing and native calendar picker synchronization.
- */
-function handleLiveValidation() {
+function formatDob(value) {
+    var digits = value.replace(/\D/g, '').slice(0, 8);
+    var parts = [digits.slice(0, 2), digits.slice(2, 4), digits.slice(4, 8)];
+
+    return parts.filter(function (part) {
+        return part.length;
+    }).join('-');
+}
+
+function formatPhone(value) {
+    var digits = value.replace(/\D/g, '').slice(0, 10);
+
+    if (digits.length <= 3) {
+        return digits ? '(' + digits : '';
+    }
+
+    if (digits.length <= 6) {
+        return '(' + digits.slice(0, 3) + ') ' + digits.slice(3);
+    }
+
+    return '(' + digits.slice(0, 3) + ') '
+        + digits.slice(3, 6) + '-' + digits.slice(6);
+}
+
+function initRegistrationValidation() {
     var $form = $('form.registration');
-    var $dob = $('#registration-form-dob');
-    var $dobPicker = $('#registration-form-dob-picker');
-    var $dobBtn = $('#dob-calendar-btn');
-    var $dobError = $('#form-dob-error');
-    var $phone = $('#registration-form-phone');
-    var $phoneError = $('#form-phone-error');
 
-    if ($form.length === 0) {
+    if (!$form.length) {
         return;
     }
 
-    var dobInteracted = false;
-    var phoneInteracted = false;
-
-    // Set max date on the calendar picker to today (no future dates)
+    var $dob = $form.find('#registration-form-dob');
+    var $dobPicker = $form.find('#registration-form-dob-picker');
+    var $dobError = $form.find('#form-dob-error');
+    var $phone = $form.find('#registration-form-phone');
+    var $phoneError = $form.find('#form-phone-error');
     var today = new Date();
-    var yyyy = today.getFullYear();
-    var mm = String(today.getMonth() + 1).padStart(2, '0');
-    var dd = String(today.getDate()).padStart(2, '0');
-    var todayIso = yyyy + '-' + mm + '-' + dd;
-    $dobPicker.attr('max', todayIso);
 
-    // Clicking calendar icon button triggers the real native browser Date Picker
-    $dobBtn.on('click', function (e) {
-        e.preventDefault();
-        var pickerEl = $dobPicker[0];
-        if (pickerEl) {
-            if (typeof pickerEl.showPicker === 'function') {
-                pickerEl.showPicker();
-            } else {
-                pickerEl.focus();
-                pickerEl.click();
+    $dobPicker.attr(
+        'max',
+        today.getFullYear() + '-' + pad(today.getMonth() + 1) + '-' + pad(today.getDate())
+    );
+
+    $form.find('#dob-calendar-btn').on('click', function () {
+        var picker = $dobPicker[0];
+
+        if (!picker) {
+            return;
+        }
+
+        if (typeof picker.showPicker === 'function') {
+            try {
+                picker.showPicker();
+            } catch (e) {
+                picker.focus();
+                picker.click();
             }
+        } else {
+            picker.focus();
+            picker.click();
         }
     });
 
-    // When a date is selected from the native calendar picker:
-    // Format YYYY-MM-DD -> DD-MM-YYYY and display inside the input!
     $dobPicker.on('change', function () {
-        var pickerVal = $(this).val(); // YYYY-MM-DD
-        if (pickerVal && /^\d{4}-\d{2}-\d{2}$/.test(pickerVal)) {
-            var parts = pickerVal.split('-');
-            var dmy = parts[2] + '-' + parts[1] + '-' + parts[0];
-            $dob.val(dmy);
-            dobInteracted = true;
-            $dob.trigger('input');
+        var parts = String($(this).val() || '').split('-');
+
+        if (parts.length === 3) {
+            $dob.val(parts[2] + '-' + parts[1] + '-' + parts[0]);
+            validateDob($dob, $dobError);
         }
     });
 
-    // Live typing validation and progressive auto-formatting for Date of Birth
-    $dob.on('input', function () {
-        dobInteracted = true;
-        var raw = $(this).val();
-
-        // Progressive auto-masking: automatically insert '-' as user types digits
-        var digits = raw.replace(/\D/g, '');
-        if (digits.length > 8) {
-            digits = digits.substring(0, 8);
-        }
-
-        var formatted = '';
-        if (digits.length > 0) {
-            if (digits.length < 2) {
-                formatted = digits;
-            } else if (digits.length === 2) {
-                formatted = raw.endsWith('-') ? digits + '-' : digits;
-            } else if (digits.length < 4) {
-                formatted = digits.substring(0, 2) + '-' + digits.substring(2);
-            } else if (digits.length === 4) {
-                formatted = raw.endsWith('-') ? digits.substring(0, 2) + '-' + digits.substring(2) + '-' : digits.substring(0, 2) + '-' + digits.substring(2);
-            } else {
-                formatted = digits.substring(0, 2) + '-' + digits.substring(2, 4) + '-' + digits.substring(4);
-            }
-        }
-
-        if (raw !== formatted && digits.length > 0) {
-            $(this).val(formatted);
-        } else if (digits.length === 0 && raw !== '') {
-            $(this).val('');
-        }
-
-        validateDobField($dob, $dobError);
+    $dob.on('input blur', function () {
+        $dob.val(formatDob($dob.val()));
+        validateDob($dob, $dobError);
     });
 
-    $dob.on('blur', function () {
-        if (dobInteracted) {
-            validateDobField($dob, $dobError);
-        }
+    $phone.on('input blur', function () {
+        $phone.val(formatPhone($phone.val()));
+        validatePhone($phone, $phoneError);
     });
 
-    // Live typing validation and progressive auto-formatting for Phone Number
-    $phone.on('input', function () {
-        phoneInteracted = true;
-        var raw = $(this).val();
-        var digits = raw.replace(/\D/g, '').slice(0, 10);
-        var formatted = '';
+    $form.on('submit.registrationValidation', function (event) {
+        var dobValid = validateDob($dob, $dobError);
+        var phoneValid = validatePhone($phone, $phoneError);
 
-        if (digits.length > 0) {
-            if (digits.length <= 3) {
-                formatted = '(' + digits;
-            } else if (digits.length <= 6) {
-                formatted = '(' + digits.slice(0, 3) + ') ' + digits.slice(3);
-            } else {
-                formatted = '(' + digits.slice(0, 3) + ') ' + digits.slice(3, 6) + '-' + digits.slice(6);
-            }
+        if (!dobValid || !phoneValid) {
+            event.preventDefault();
+            event.stopImmediatePropagation();
+            $form.find('.is-invalid').first().trigger('focus');
+            return false;
         }
 
-        if (raw !== formatted) {
-            $(this).val(formatted);
-        }
-
-        validatePhoneField($phone, $phoneError);
-    });
-
-    $phone.on('blur', function () {
-        if (phoneInteracted) {
-            validatePhoneField($phone, $phoneError);
-        }
+        return true;
     });
 }
 
-// Extend base register functionality
 var baseRegister = base.register;
 
 base.register = function () {
-    handleLiveValidation();
-
-    $('form.registration').on('submit', function (e) {
-        var $dob = $('#registration-form-dob');
-        var $phone = $('#registration-form-phone');
-        var $dobError = $('#form-dob-error');
-        var $phoneError = $('#form-phone-error');
-
-        var isDobValid = validateDobField($dob, $dobError);
-        var isPhoneValid = validatePhoneField($phone, $phoneError);
-
-        if (!isDobValid || !isPhoneValid) {
-            e.preventDefault();
-            e.stopPropagation();
-            e.stopImmediatePropagation();
-            if (typeof $(this).spinner === 'function') {
-                $(this).spinner().stop();
-            }
-            return false;
-        }
-    });
-
+    initRegistrationValidation();
     baseRegister();
 };
 

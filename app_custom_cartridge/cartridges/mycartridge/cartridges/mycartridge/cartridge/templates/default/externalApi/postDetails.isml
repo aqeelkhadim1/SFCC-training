@@ -1,0 +1,17 @@
+<isdecorate template="common/layout/page">
+    <div class="container py-4">
+        <h1>Post Details</h1>
+        <isif condition="${pdict.error}">
+            <div class="alert alert-danger" role="alert"><isprint value="${pdict.error}" encoding="htmlcontent" /></div>
+        <iselse/>
+            <dl class="row">
+                <dt class="col-sm-3">Post ID</dt><dd class="col-sm-9"><isprint value="${pdict.post.id}" encoding="htmlcontent" /></dd>
+                <dt class="col-sm-3">User ID</dt><dd class="col-sm-9"><isprint value="${pdict.post.userId}" encoding="htmlcontent" /></dd>
+                <dt class="col-sm-3">Title</dt><dd class="col-sm-9"><isprint value="${pdict.post.title}" encoding="htmlcontent" /></dd>
+                <dt class="col-sm-3">Description</dt><dd class="col-sm-9"><isprint value="${pdict.post.body}" encoding="htmlcontent" /></dd>
+            </dl>
+            <a class="btn btn-primary" href="${pdict.editUrl}">Edit Post</a>
+        </isif>
+        <a class="btn btn-secondary" href="${pdict.backUrl}">Back to Posts</a>
+    </div>
+</isdecorate>

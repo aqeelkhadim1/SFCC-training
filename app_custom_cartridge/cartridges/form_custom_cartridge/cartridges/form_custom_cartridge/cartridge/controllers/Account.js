@@ -116,14 +116,19 @@ server.append('SubmitRegistration', function (req, res, next) {
             if (dobDate && phoneValue && registrationValidationHelper.isValidPhone(phoneValue)) {
                 var profile = viewData.authenticatedCustomer.getProfile();
 
-                Transaction.wrap(function () {
-                    // Save Date of Birth as Date-type custom attribute
-                    profile.custom.dateOfBirth = dobDate;
-                    // Save Phone Number as String-type custom attribute
-                    profile.custom.phoneNumber = phoneValue;
-                    // Also populate standard profile phoneHome
-                    profile.phoneHome = phoneValue;
-                });
+                if (profile) {
+                    var customerProfile = profile;
+                    Transaction.wrap(function () {
+                        // Save Date of Birth as Date-type custom attribute
+                        customerProfile.custom.dateOfBirth = dobDate;
+                        // Keep SFCC's standard Profile birthday field in sync
+                        customerProfile.setBirthday(dobDate);
+                        // Save Phone Number as String-type custom attribute
+                        customerProfile.custom.phoneNumber = phoneValue;
+                        // Also populate standard profile phoneHome
+                        customerProfile.phoneHome = phoneValue;
+                    });
+                }
             }
         }
     });

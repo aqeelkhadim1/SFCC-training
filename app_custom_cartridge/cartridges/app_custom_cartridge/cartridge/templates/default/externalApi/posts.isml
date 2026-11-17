@@ -1,0 +1,93 @@
+<isdecorate template="common/layout/page">
+    <isscript>
+        var assets = require('*/cartridge/scripts/assets.js');
+        assets.addCss('/css/externalApi.css');
+        assets.addJs('/js/externalApi.js');
+    </isscript>
+
+    <div class="container my-4">
+
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h1>${Resource.msg('title.posts.management', 'externalApi', null)}</h1>
+                <p class="text-muted mb-0">${Resource.msg('subtitle.posts.management', 'externalApi', null)}</p>
+            </div>
+
+            <button type="button" class="btn btn-primary js-create-post">
+                ${Resource.msg('btn.create.post', 'externalApi', null)}
+            </button>
+        </div>
+
+        <div id="api-alert-container">
+            <isif condition="${pdict.errorMessage}">
+                <div class="alert alert-danger">
+                    ${pdict.errorMessage}
+                </div>
+            </isif>
+        </div>
+
+        <div id="posts-config" data-get-url="${URLUtils.url('ExternalApi-GetPosts')}"
+            data-view-url="${URLUtils.url('ExternalApi-ViewPost')}"
+            data-save-url="${URLUtils.url('ExternalApi-SavePost')}"
+            data-update-url="${URLUtils.url('ExternalApi-UpdatePost')}"
+            data-delete-url="${URLUtils.url('ExternalApi-DeletePost')}">
+        </div>
+
+        <div class="card">
+            <div class="card-header d-flex justify-content-between">
+                <span>
+                    ${Resource.msg('label.total.posts', 'externalApi', null)}
+                    <strong id="post-count">${pdict.pagination.totalCount}</strong>
+                </span>
+                <span class="badge badge-success">${Resource.msg('badge.live.crud', 'externalApi', null)}</span>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead class="thead-dark">
+                        <tr>
+                            <th>${Resource.msg('th.id', 'externalApi', null)}</th>
+                            <th>${Resource.msg('th.userid', 'externalApi', null)}</th>
+                            <th>${Resource.msg('th.title', 'externalApi', null)}</th>
+                            <th>${Resource.msg('th.description', 'externalApi', null)}</th>
+                            <th class="actions-col">${Resource.msg('th.actions', 'externalApi', null)}</th>
+                        </tr>
+                    </thead>
+
+                    <tbody id="posts-table-body">
+                        <isinclude template="externalApi/components/postRows" />
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mt-4">
+            <div id="page-info" class="text-muted">
+                ${Resource.msgf('label.page.info', 'externalApi', null, pdict.pagination.page, pdict.pagination.totalPages)}
+            </div>
+
+            <div>
+                <a href="${URLUtils.url('ExternalApi-ViewMore')}" class="btn btn-primary px-4 py-2 shadow-sm">
+                    <i class="fa fa-arrow-down me-2" aria-hidden="true"></i>
+                    <span>${Resource.msg('btn.view.more', 'externalApi', null)}</span>
+                </a>
+            </div>
+
+            <div class="btn-group">
+                <button type="button" id="prev-page" class="btn btn-outline-primary btn-sm me-1"
+                    data-url="${pdict.pagination.previousUrl || ''}" ${!pdict.pagination.hasPrevious ? 'disabled' : ''}>
+                    ${Resource.msg('btn.previous', 'externalApi', null)}
+                </button>
+
+                <button type="button" id="next-page" class="btn btn-outline-primary btn-sm"
+                    data-url="${pdict.pagination.nextUrl || ''}" ${!pdict.pagination.hasNext ? 'disabled' : ''}>
+                    ${Resource.msg('btn.next', 'externalApi', null)}
+                </button>
+            </div>
+        </div>
+
+    </div>
+
+    <isinclude template="externalApi/modal/postModal" />
+
+</isdecorate>

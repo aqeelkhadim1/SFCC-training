@@ -1,0 +1,28 @@
+#external-api-app .posts-pagination {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  -webkit-box-align: center;
+      -ms-flex-align: center;
+          align-items: center;
+  margin-top: 1rem;
+}
+#external-api-app #previous-page {
+  justify-self: start;
+}
+#external-api-app #current-page {
+  justify-self: center;
+}
+#external-api-app #next-page {
+  justify-self: end;
+}
+#external-api-app .table td {
+  vertical-align: middle;
+}
+#external-api-app #posts-table-body td:nth-child(1),
+#external-api-app #posts-table-body td:nth-child(2),
+#external-api-app #posts-table-body td:last-child {
+  white-space: nowrap;
+}
+#external-api-app #detail-body {
+  overflow-wrap: anywhere;
+}
