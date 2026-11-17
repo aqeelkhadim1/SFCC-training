@@ -8,5 +8,8 @@
     "install:projects": "npm --prefix storefront-reference-architecture-master install && npm --prefix app_custom_cartridge install",
     "build": "npm --prefix storefront-reference-architecture-master run build && npm --prefix app_custom_cartridge run build",
     "watch": "node app_custom_cartridge/scripts/watch.js"
+  },
+  "dependencies": {
+    "codex": "^0.2.3"
   }
 }

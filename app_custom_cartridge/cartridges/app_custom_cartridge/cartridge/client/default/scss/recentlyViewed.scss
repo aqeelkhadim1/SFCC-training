@@ -1,0 +1,74 @@
+#recently-viewed-carousel {
+    .recently-viewed-track {
+        flex: 1;
+        min-width: 0;
+        overflow-x: auto;
+        scroll-behavior: smooth;
+        scroll-snap-type: x mandatory;
+        scrollbar-width: none;
+
+        &::-webkit-scrollbar {
+            display: none;
+        }
+    }
+
+    .recently-viewed-item {
+        scroll-snap-align: start;
+
+        > .product {
+            height: 100%;
+        }
+    }
+
+    .product-tile {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        padding-bottom: 0.5rem;
+        box-shadow: 2px 6px 8px rgba(22, 22, 26, 0.12);
+    }
+
+    .image-container > a {
+        display: block;
+        aspect-ratio: 1;
+    }
+
+    .tile-image {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+    }
+
+    .tile-body {
+        flex: 1;
+        padding: 0.625rem;
+    }
+
+    .pdp-link {
+        min-height: 2.8em;
+        line-height: 1.4;
+
+        a {
+            display: -webkit-box;
+            overflow: hidden;
+            -webkit-box-orient: vertical;
+            -webkit-line-clamp: 2;
+        }
+    }
+
+    .recently-viewed-control {
+        flex-shrink: 0;
+        width: 2.5rem;
+        height: 2.5rem;
+
+        &:disabled {
+            opacity: 0.35;
+        }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .recently-viewed-track {
+            scroll-behavior: auto;
+        }
+    }
+}

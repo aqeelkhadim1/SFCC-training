@@ -33,6 +33,9 @@ server.append('SubmitRegistration', function (req, res, next) {
     var registrationHelper = require('*/cartridge/scripts/helpers/registrationHelper');
 
     this.on('route:BeforeComplete', function (innerReq, innerRes) {
+        // SFCC resolves the cartridge wildcard alias at runtime.
+        // @ts-ignore
+        var recentlyViewedHelper = require('*/cartridge/scripts/helpers/recentlyViewedHelper');
         var viewData = innerRes.getViewData();
 
         if (viewData && viewData.authenticatedCustomer) {
@@ -41,6 +44,7 @@ server.append('SubmitRegistration', function (req, res, next) {
                 viewData.customDob,
                 viewData.customPhone
             );
+            recentlyViewedHelper.mergeOnLogin(viewData.authenticatedCustomer);
         }
     });
 
@@ -61,6 +65,14 @@ server.append('Show', function (req, res, next) {
         viewData.account.profile.dateOfBirth = registrationHelper.formatDate(profile.custom.dateOfBirth);
     }
 
+    return next();
+});
+
+server.append('Login', function (req, res, next) {
+    // SFCC resolves the cartridge wildcard alias at runtime.
+    // @ts-ignore
+    var recentlyViewedHelper = require('*/cartridge/scripts/helpers/recentlyViewedHelper');
+    recentlyViewedHelper.mergeOnLogin(res.getViewData().authenticatedCustomer);
     return next();
 });
 
