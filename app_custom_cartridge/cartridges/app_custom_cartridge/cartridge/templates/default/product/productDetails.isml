@@ -5,19 +5,21 @@
         assets.addJs('/js/productDetail.js');
         assets.addJs('/js/recentlyViewedTracking.js');
         assets.addCss('/css/product/detail.css');
+        var csrf = require('dw/web/CSRFProtection');
     </isscript>
 
     <isset name="product" value="${pdict.product}" scope="page" />
     <isset name="isQuickView" value="${false}" scope="page" />
     <isset name="isProductSet" value="${pdict.product.productType === 'set'}" scope="page" />
     <isobject object="${product.raw}" view="detail">
+        <input type="hidden" name="${csrf.getTokenName()}" value="${csrf.generateToken()}" />
         <div class="container product-detail product-wrapper recently-viewed" data-pid="${product.id}"
             data-recently-viewed-tracking="${URLUtils.url('Product-TrackRecentlyViewed')}">
             <div class="row">
                 <div class="col-12">
                     <!--Breadcrumbs-->
                     <div class="product-breadcrumb d-md-none">
-                        <isinclude template="components/breadcrumbs/pageBreadcrumbs"/>
+                        <isinclude template="components/breadcrumbs/pageBreadcrumbs" />
                     </div>
 
                     <!-- Product Name -->
@@ -37,7 +39,7 @@
                     <!--Breadcrumbs-->
                     <div class="row">
                         <div class="product-breadcrumb col hidden-sm-down">
-                            <isinclude template="components/breadcrumbs/pageBreadcrumbs"/>
+                            <isinclude template="components/breadcrumbs/pageBreadcrumbs" />
                         </div>
                     </div>
 
@@ -60,7 +62,8 @@
                         <isinclude template="product/components/mainAttributes" />
 
                         <isset name="isBundle" value="${false}" scope="page" />
-                        <isset name="loopState" value="${{count: 1}}" scope="page" />
+                        <isset name="loopState" value="${{
+                                                       count: 1}}" scope="page" />
                         <isloop items="${product.variationAttributes}" var="attr" status="attributeStatus">
                             <div class="row" data-attr="${attr.id}">
                                 <div class="col-8">
@@ -135,14 +138,17 @@
             </div>
 
             <div>
-                <isslot id="cts-recommendations-m" description="Complete the set products" context="global" context-object="${pdict.product.raw}" />
+                <isslot id="cts-recommendations-m" description="Complete the set products" context="global"
+                    context-object="${pdict.product.raw}" />
             </div>
 
-            <isset name="loopState" value="${{count: 1}}" scope="page" />
+            <isset name="loopState" value="${{
+                                           count: 1}}" scope="page" />
             <isinclude template="product/components/descriptionAndDetails" />
 
             <div class="recommendations">
-                <isslot id="product-recommendations-m" description="Recommended products" context="global" context-object="${pdict.product.raw}" />
+                <isslot id="product-recommendations-m" description="Recommended products" context="global"
+                    context-object="${pdict.product.raw}" />
             </div>
         </div>
     </isobject>
