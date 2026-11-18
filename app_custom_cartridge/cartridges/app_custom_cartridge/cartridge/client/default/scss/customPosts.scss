@@ -1,0 +1,29 @@
+.custom-posts {
+    nav button:disabled {
+        opacity: 0.45;
+        pointer-events: none;
+    }
+
+    table {
+        table-layout: fixed;
+        width: 100%;
+    }
+
+    .custom-post-id {
+        max-width: 12rem;
+        overflow-wrap: anywhere;
+        font-size: 0.875rem;
+    }
+
+    .custom-post-body {
+        max-width: 28rem;
+        overflow-wrap: anywhere;
+        white-space: pre-line;
+    }
+
+    td,
+    th {
+        padding: 0.875rem;
+        overflow-wrap: anywhere;
+    }
+}

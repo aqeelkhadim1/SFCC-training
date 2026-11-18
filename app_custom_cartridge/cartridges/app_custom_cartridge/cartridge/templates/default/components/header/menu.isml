@@ -35,6 +35,11 @@
                     ${Resource.msg('nav.posts', 'externalApi', 'Posts')}
                 </a>
             </li>
+            <li class="nav-item" role="presentation">
+                <a href="${URLUtils.url('CustomPosts-Show')}" class="nav-link" role="link" tabindex="0">
+                    ${Resource.msg('nav.posts', 'customPosts', 'Custom Posts')}
+                </a>
+            </li>
             <isinclude url="${URLUtils.url('Account-Header', 'mobile', true)}" />
             <isinclude url="${URLUtils.url('Page-Locale', 'mobile', true)}" />
         </ul>
