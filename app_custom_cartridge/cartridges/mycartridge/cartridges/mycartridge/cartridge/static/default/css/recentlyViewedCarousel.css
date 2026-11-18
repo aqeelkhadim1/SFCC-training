@@ -1,0 +1,83 @@
+.recently-viewed-products {
+  margin-top: 2rem;
+  margin-bottom: 2rem;
+}
+.recently-viewed-products .recently-viewed-header {
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-align: center;
+      -ms-flex-align: center;
+          align-items: center;
+  -webkit-box-pack: justify;
+      -ms-flex-pack: justify;
+          justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+.recently-viewed-products .recently-viewed-header h2 {
+  margin: 0;
+}
+.recently-viewed-products .recently-viewed-controls {
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  gap: 0.5rem;
+}
+.recently-viewed-products .recently-viewed-control {
+  width: 2.5rem;
+  height: 2.5rem;
+  border: 1px solid #777;
+  border-radius: 50%;
+  background: #fff;
+  color: #222;
+  font-size: 1.75rem;
+  line-height: 1;
+}
+.recently-viewed-products .recently-viewed-control:disabled {
+  cursor: default;
+  opacity: 0.4;
+}
+.recently-viewed-products .recently-viewed-viewport {
+  overflow-x: auto;
+  overscroll-behavior-inline: contain;
+  scroll-behavior: smooth;
+  -ms-scroll-snap-type: x mandatory;
+      scroll-snap-type: x mandatory;
+  scrollbar-width: thin;
+}
+.recently-viewed-products .recently-viewed-track {
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-align: stretch;
+      -ms-flex-align: stretch;
+          align-items: stretch;
+  gap: 1.5rem;
+}
+.recently-viewed-products .recently-viewed-slide {
+  -webkit-box-flex: 0;
+      -ms-flex: 0 0 calc((100% - 4.5rem) / 4);
+          flex: 0 0 calc((100% - 4.5rem) / 4);
+  min-width: 0;
+  scroll-snap-align: start;
+}
+.recently-viewed-products .recently-viewed-slide .product,
+.recently-viewed-products .recently-viewed-slide .product-tile {
+  height: 100%;
+}
+.recently-viewed-products .recently-viewed-availability {
+  margin-top: 0.5rem;
+}
+@media (max-width: 767.98px) {
+  .recently-viewed-products .recently-viewed-slide {
+    -ms-flex-preferred-size: calc((100% - 1.5rem) / 2);
+        flex-basis: calc((100% - 1.5rem) / 2);
+  }
+}
+@media (max-width: 479.98px) {
+  .recently-viewed-products .recently-viewed-slide {
+    -ms-flex-preferred-size: 82%;
+        flex-basis: 82%;
+  }
+}

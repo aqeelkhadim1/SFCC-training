@@ -4,8 +4,30 @@ var server = require('server');
 var base = module.superModule;
 var Resource = require('dw/web/Resource');
 var Transaction = require('dw/system/Transaction');
+var recentlyViewed = require('*/cartridge/scripts/helpers/recentlyViewed');
 
 server.extend(base);
+
+server.append('Login', function mergeRecentlyViewedAfterLogin(req, res, next) {
+  var viewData = res.getViewData();
+  var customer = viewData && viewData.authenticatedCustomer;
+
+  if (customer && customer.profile) {
+    recentlyViewed.mergeGuestHistory(req, res, customer.profile);
+  }
+  return next();
+});
+
+server.append('SubmitRegistration', function mergeRecentlyViewedAfterRegistration(req, res, next) {
+  this.on('route:BeforeComplete', function mergeHistoryAfterRegistration(req, res) {
+    var viewData = res.getViewData();
+    var customer = viewData && viewData.authenticatedCustomer;
+    if (customer && customer.profile) {
+      recentlyViewed.mergeGuestHistory(req, res, customer.profile);
+    }
+  });
+  return next();
+});
 
 /**
  * Parse a strict DD-MM-YYYY value as a JavaScript Date.
