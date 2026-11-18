@@ -22,7 +22,21 @@
   display: -webkit-box;
   display: -ms-flexbox;
   display: flex;
+  position: absolute;
+  z-index: 2;
+  top: 50%;
+  right: 0;
+  left: 0;
+  -webkit-box-pack: justify;
+      -ms-flex-pack: justify;
+          justify-content: space-between;
   gap: 0.5rem;
+  -webkit-transform: translateY(-50%);
+          transform: translateY(-50%);
+  pointer-events: none;
+}
+.recently-viewed-products .recently-viewed-carousel {
+  position: relative;
 }
 .recently-viewed-products .recently-viewed-control {
   width: 2.5rem;
@@ -33,6 +47,7 @@
   color: #222;
   font-size: 1.75rem;
   line-height: 1;
+  pointer-events: auto;
 }
 .recently-viewed-products .recently-viewed-control:disabled {
   cursor: default;

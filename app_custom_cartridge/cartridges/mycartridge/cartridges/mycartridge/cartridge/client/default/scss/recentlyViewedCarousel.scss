@@ -16,7 +16,19 @@
 
     .recently-viewed-controls {
         display: flex;
+        position: absolute;
+        z-index: 2;
+        top: 50%;
+        right: 0;
+        left: 0;
+        justify-content: space-between;
         gap: 0.5rem;
+        transform: translateY(-50%);
+        pointer-events: none;
+    }
+
+    .recently-viewed-carousel {
+        position: relative;
     }
 
     .recently-viewed-control {
@@ -28,6 +40,7 @@
         color: #222;
         font-size: 1.75rem;
         line-height: 1;
+        pointer-events: auto;
     }
 
     .recently-viewed-control:disabled {

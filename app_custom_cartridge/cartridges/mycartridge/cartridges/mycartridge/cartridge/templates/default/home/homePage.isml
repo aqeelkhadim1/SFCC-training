@@ -27,24 +27,26 @@
         <section class="container recently-viewed-products homepage" aria-labelledby="recently-viewed-heading" data-recently-viewed-carousel>
             <div class="recently-viewed-header">
                 <h2 id="recently-viewed-heading">Recently Viewed Products</h2>
+            </div>
+            <div class="recently-viewed-carousel">
+                <div class="recently-viewed-viewport" data-carousel-viewport tabindex="0" aria-label="Recently viewed products">
+                    <div class="recently-viewed-track">
+                    <isloop items="${pdict.recentlyViewedProducts}" var="product">
+                        <div class="col-6 col-sm-4 col-md-3 recently-viewed-slide">
+                            <isobject object="${product.raw}" view="tile">
+                                <isinclude template="product/productTile" />
+                            </isobject>
+                            <p class="recently-viewed-availability">${product.availabilityLabel}</p>
+                            <a class="btn btn-primary recently-viewed-product-button" href="${product.urls.product}">
+                                View Product
+                            </a>
+                        </div>
+                    </isloop>
+                    </div>
+                </div>
                 <div class="recently-viewed-controls">
                     <button class="btn btn-outline-primary recently-viewed-control" type="button" data-carousel-prev aria-label="Show previous products">&lt;</button>
                     <button class="btn btn-outline-primary recently-viewed-control" type="button" data-carousel-next aria-label="Show next products">&gt;</button>
-                </div>
-            </div>
-            <div class="recently-viewed-viewport" data-carousel-viewport tabindex="0" aria-label="Recently viewed products">
-                <div class="recently-viewed-track">
-                <isloop items="${pdict.recentlyViewedProducts}" var="product">
-                    <div class="col-6 col-sm-4 col-md-3 recently-viewed-slide">
-                        <isobject object="${product.raw}" view="tile">
-                            <isinclude template="product/productTile" />
-                        </isobject>
-                        <p class="recently-viewed-availability">${product.availabilityLabel}</p>
-                        <a class="btn btn-primary recently-viewed-product-button" href="${product.urls.product}">
-                            View Product
-                        </a>
-                    </div>
-                </isloop>
                 </div>
             </div>
         </section>
