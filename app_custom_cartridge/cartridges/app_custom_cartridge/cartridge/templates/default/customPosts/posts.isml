@@ -1,0 +1,32 @@
+<isdecorate template="common/layout/page">
+    <isscript>
+        var assets = require('*/cartridge/scripts/assets');
+        assets.addJs('/js/customPosts.js');
+        assets.addCss('/css/customPosts.css');
+    </isscript>
+
+    <div id="custom-posts" class="container custom-posts my-4"
+        data-list-url="${URLUtils.url('CustomPosts-GetPosts')}"
+        data-view-url="${URLUtils.url('CustomPosts-ViewPost')}"
+        data-save-url="${URLUtils.url('CustomPosts-SavePost')}"
+        data-update-url="${URLUtils.url('CustomPosts-UpdatePost')}"
+        data-delete-url="${URLUtils.url('CustomPosts-DeletePost')}"
+        data-create-success="${Resource.msg('success.created', 'customPosts', null)}"
+        data-edit-success="${Resource.msg('success.updated', 'customPosts', null)}"
+        data-delete-success="${Resource.msg('success.deleted', 'customPosts', null)}"
+        data-request-error="${Resource.msg('error.request', 'customPosts', null)}">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4">
+            <div>
+                <h1>${Resource.msg('page.title', 'customPosts', null)}</h1>
+                <p class="text-muted mb-0">${Resource.msg('page.description', 'customPosts', null)}</p>
+            </div>
+            <button type="button" class="btn btn-primary js-custom-create">
+                ${Resource.msg('button.create', 'customPosts', null)}
+            </button>
+        </div>
+
+        <isinclude template="customPosts/components/postList" />
+
+        <isinclude template="customPosts/modal/postModal" />
+    </div>
+</isdecorate>

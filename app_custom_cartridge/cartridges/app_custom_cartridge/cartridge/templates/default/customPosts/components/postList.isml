@@ -1,0 +1,77 @@
+<div id="custom-post-list" data-page="${pdict.pagination.page}" data-success="${pdict.success}"
+    data-has-previous="${pdict.pagination.hasPrevious}" data-has-next="${pdict.pagination.hasNext}">
+        <div class="js-custom-page-message" aria-live="polite">
+            <isif condition="${pdict.error}">
+                <div class="alert alert-danger" role="alert">${pdict.error}</div>
+            </isif>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                ${Resource.msgf('label.total', 'customPosts', null, pdict.pagination.totalCount)}
+            </div>
+            <div>
+                <table class="table table-hover align-middle mb-0">
+                    <caption class="visually-hidden">${Resource.msg('page.title', 'customPosts', null)}</caption>
+                    <thead class="table-light">
+                        <tr>
+                            <th scope="col">${Resource.msg('label.id', 'customPosts', null)}</th>
+                            <th scope="col">${Resource.msg('label.userId', 'customPosts', null)}</th>
+                            <th scope="col">${Resource.msg('label.title', 'customPosts', null)}</th>
+                            <th scope="col">${Resource.msg('label.body', 'customPosts', null)}</th>
+                            <th scope="col">${Resource.msg('label.actions', 'customPosts', null)}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <isif condition="${pdict.posts.length}">
+                            <isloop items="${pdict.posts}" var="post">
+                                <tr>
+                                    <td class="custom-post-id">${post.id}</td>
+                                    <td>${post.userId}</td>
+                                    <td>${post.title}</td>
+                                    <td class="custom-post-body">${post.body}</td>
+                                    <td>
+                                        <div class="d-flex flex-wrap gap-2">
+                                            <button type="button" class="btn btn-sm btn-outline-info js-custom-action" data-mode="view" data-id="${post.id}">
+                                                ${Resource.msg('button.view', 'customPosts', null)}
+                                            </button>
+                                            <button type="button" class="btn btn-sm btn-outline-secondary js-custom-action" data-mode="edit" data-id="${post.id}">
+                                                ${Resource.msg('button.edit', 'customPosts', null)}
+                                            </button>
+                                            <button type="button" class="btn btn-sm btn-outline-danger js-custom-action" data-mode="delete" data-id="${post.id}">
+                                                ${Resource.msg('button.delete', 'customPosts', null)}
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </isloop>
+                        <iselse/>
+                            <tr>
+                                <td colspan="5" class="text-center text-muted py-5">${Resource.msg('empty', 'customPosts', null)}</td>
+                            </tr>
+                        </isif>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <isif condition="${pdict.pagination.show}">
+            <nav class="d-flex justify-content-between align-items-center flex-wrap gap-2 mt-4"
+                aria-label="${Resource.msg('label.pagination', 'customPosts', null)}">
+                <span class="text-muted">
+                    ${Resource.msgf('label.page', 'customPosts', null, pdict.pagination.page, pdict.pagination.totalPages)}
+                </span>
+                <div class="d-flex gap-2">
+                    <button type="button" id="custom-prev-page" class="btn btn-outline-primary btn-sm js-custom-page"
+                        data-url="${pdict.pagination.previousUrl || ''}" ${!pdict.pagination.hasPrevious ? 'disabled' : ''}>
+                        ${Resource.msg('button.previous', 'customPosts', null)}
+                    </button>
+                    <button type="button" id="custom-next-page" class="btn btn-outline-primary btn-sm js-custom-page"
+                        data-url="${pdict.pagination.nextUrl || ''}" ${!pdict.pagination.hasNext ? 'disabled' : ''}>
+                        ${Resource.msg('button.next', 'customPosts', null)}
+                    </button>
+                </div>
+            </nav>
+        </isif>
+
+</div>

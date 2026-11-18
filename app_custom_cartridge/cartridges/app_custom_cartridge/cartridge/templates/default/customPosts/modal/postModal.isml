@@ -1,0 +1,53 @@
+<div class="modal fade" id="custom-post-modal" tabindex="-1" aria-labelledby="custom-post-modal-title" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <form id="custom-post-form" novalidate
+                data-create-title="${Resource.msg('button.create', 'customPosts', null)}"
+                data-view-title="${Resource.msg('modal.view', 'customPosts', null)}"
+                data-edit-title="${Resource.msg('modal.edit', 'customPosts', null)}"
+                data-delete-title="${Resource.msg('modal.delete', 'customPosts', null)}"
+                data-create-action="${Resource.msg('button.save', 'customPosts', null)}"
+                data-edit-action="${Resource.msg('button.update', 'customPosts', null)}"
+                data-delete-action="${Resource.msg('button.delete', 'customPosts', null)}">
+                <input type="hidden" name="id" />
+                <input type="hidden" name="${require('dw/web/CSRFProtection').getTokenName()}"
+                    value="${require('dw/web/CSRFProtection').generateToken()}" />
+                <div class="modal-header">
+                    <h2 class="modal-title fs-5" id="custom-post-modal-title"></h2>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"
+                        aria-label="${Resource.msg('button.close', 'customPosts', null)}"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="js-custom-form-message" role="alert"></div>
+                    <p class="js-custom-post-key d-none">${Resource.msg('label.id', 'customPosts', null)}: <span></span></p>
+                    <div class="js-custom-fields">
+                        <div class="mb-3">
+                            <label class="form-label" for="custom-post-user-id">${Resource.msg('label.userId', 'customPosts', null)}</label>
+                            <input id="custom-post-user-id" name="userId" type="number" class="form-control" required
+                                step="1" aria-describedby="custom-post-user-id-error"
+                                data-error="${Resource.msg('validation.userId', 'customPosts', null)}" />
+                            <div id="custom-post-user-id-error" class="invalid-feedback"></div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label" for="custom-post-title">${Resource.msg('label.title', 'customPosts', null)}</label>
+                            <input id="custom-post-title" name="title" type="text" class="form-control" required
+                                aria-describedby="custom-post-title-error" data-error="${Resource.msg('validation.title', 'customPosts', null)}" />
+                            <div id="custom-post-title-error" class="invalid-feedback"></div>
+                        </div>
+                        <div class="mb-0">
+                            <label class="form-label" for="custom-post-body">${Resource.msg('label.body', 'customPosts', null)}</label>
+                            <textarea id="custom-post-body" name="body" class="form-control" rows="5" required
+                                aria-describedby="custom-post-body-error" data-error="${Resource.msg('validation.body', 'customPosts', null)}"></textarea>
+                            <div id="custom-post-body-error" class="invalid-feedback"></div>
+                        </div>
+                    </div>
+                    <p class="js-custom-delete-confirm d-none mb-0">${Resource.msg('delete.confirm', 'customPosts', null)}</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">${Resource.msg('button.cancel', 'customPosts', null)}</button>
+                    <button type="submit" class="btn btn-primary js-custom-submit"></button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
