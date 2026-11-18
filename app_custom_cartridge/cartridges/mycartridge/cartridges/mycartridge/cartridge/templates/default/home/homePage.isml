@@ -40,6 +40,9 @@
                             <isinclude template="product/productTile" />
                         </isobject>
                         <p class="recently-viewed-availability">${product.availabilityLabel}</p>
+                        <a class="btn btn-primary recently-viewed-product-button" href="${product.urls.product}">
+                            View Product
+                        </a>
                     </div>
                 </isloop>
                 </div>

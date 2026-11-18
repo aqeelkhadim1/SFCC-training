@@ -37,10 +37,18 @@
 
     .recently-viewed-viewport {
         overflow-x: auto;
+        overflow-y: hidden;
         overscroll-behavior-inline: contain;
         scroll-behavior: smooth;
         scroll-snap-type: x mandatory;
-        scrollbar-width: thin;
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+    }
+
+    .recently-viewed-viewport::-webkit-scrollbar {
+        display: none;
+        width: 0;
+        height: 0;
     }
 
     .recently-viewed-track {
@@ -62,6 +70,11 @@
 
     .recently-viewed-availability {
         margin-top: 0.5rem;
+    }
+
+    .recently-viewed-product-button {
+        display: block;
+        margin-top: 0.75rem;
     }
 
     @media (max-width: 767.98px) {

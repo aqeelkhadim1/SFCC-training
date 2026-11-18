@@ -40,11 +40,18 @@
 }
 .recently-viewed-products .recently-viewed-viewport {
   overflow-x: auto;
+  overflow-y: hidden;
   overscroll-behavior-inline: contain;
   scroll-behavior: smooth;
   -ms-scroll-snap-type: x mandatory;
       scroll-snap-type: x mandatory;
-  scrollbar-width: thin;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.recently-viewed-products .recently-viewed-viewport::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
 }
 .recently-viewed-products .recently-viewed-track {
   display: -webkit-box;
@@ -68,6 +75,10 @@
 }
 .recently-viewed-products .recently-viewed-availability {
   margin-top: 0.5rem;
+}
+.recently-viewed-products .recently-viewed-product-button {
+  display: block;
+  margin-top: 0.75rem;
 }
 @media (max-width: 767.98px) {
   .recently-viewed-products .recently-viewed-slide {
