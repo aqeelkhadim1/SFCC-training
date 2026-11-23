@@ -1,0 +1,97 @@
+<isinclude template="components/modules"/>
+
+<isset name="name" value="${pdict.name}" scope="page" />
+<isset name="isLoggedIn" value="${pdict.isLoggedIn}" scope="page" />
+<isset name="currentSiteID" value="${dw.system.Site.getCurrent().getID()}" scope="page" />
+<isset name="isFsaOrHsa" value="${currentSiteID === 'FSASTORE' || currentSiteID === 'HSASTORE'}" scope="page" />
+<isset name="trackOrdersLink" value="${(isLoggedIn) ? URLUtils.url('Order-SOMHistory') : URLUtils.https('Account-Show')}" scope="page" />
+
+<isif condition="${!pdict.isIse || empty(name)}">
+    <isif condition="${empty(name)}">
+        <a href="${'javascript:void(0)'}" role="button" data-toggle="dropdown"
+        class="dropdown-toggle c-site-header__utility-nav__utilities__user__toggle js-user-menu-mobile-toggle"
+        aria-expanded="false"
+        aria-label="${Resource.msg('label.header.loginbutton', 'account', null)}">
+            <issvg name="svg-user" classname="c-icon--user c-site-header__utility-nav__utilities__user__toggle__icon" />
+            <span class="user-message sr-only">${Resource.msg('link.header.login', 'account', null)}</span>
+        </a>
+    <iselse/>
+        <a href="${'#'}" id="myaccount" aria-label="${Resource.msg('link.header.myaccount', 'account', null)}" role="button"
+        class="dropdown-toggle c-site-header__utility-nav__utilities__user__toggle js-user-menu-mobile-toggle"
+        aria-expanded="false"
+        data-toggle="dropdown">
+            <issvg name="svg-user" classname="c-icon--user c-site-header__utility-nav__utilities__user__toggle__icon" />
+        </a>
+    </isif>
+    <div class="dropdown-menu js-user-menu-mobile c-site-header__utility-nav__utilities__user__menu ${isFsaOrHsa ? 'c-site-header__utility-nav__utilities__user__menu--lg' : ''} ${ isFsaOrHsa && isLoggedIn ? 'pt-0' : ''}">
+        <isif condition="${isFsaOrHsa}">
+            <isinclude template="account/components/fsa-hsa-header" />
+        <iselse/>
+            <div class="close-button js-close-button c-site-header__utility-nav__utilities__user__menu__close">
+                <button role="button" aria-label="${Resource.msg('label.header.menu.close', 'common', null)}"
+                class="px-0">
+                    <span class="sr-only">${Resource.msg('link.header.menu.close', 'common', null)}</span>
+                    <span aria-hidden="true">
+                        <issvg name="svg-close" classname="c-icon--close" />
+                    </span>
+                </button>
+            </div>
+            <isif condition="${!isLoggedIn}">
+                <a href="${URLUtils.https('Wishlist-Show')}" class="nav-link">
+                    <i class="fa fa-heart" aria-hidden="true"></i>
+                    <span class="user-message">${Resource.msg('link.wishlist', 'account', null)}</span>
+                </a>
+                <a href="${URLUtils.https('Login-Show')}"
+                class="btn btn-primary w-100 c-site-header__utility-nav__utilities__user__menu__btn js-toggle-login js-login">
+                    ${Resource.msg('link.header.login', 'account', null)}
+                </a>
+                <a href="${URLUtils.https('Login-Show', 'action', 'register')}"
+                class="btn btn-outline-primary w-100 c-site-header__utility-nav__utilities__user__menu__btn js-toggle-login js-create">
+                    ${Resource.msg('link.header.register.module', 'login', null)}
+                </a>
+            </isif>
+        </isif>
+        <isinclude url="${URLUtils.url('BalanceTracker-DisplayBalanceTracker', 'mobile', 'true', 'forcedRefresh', 'false')}" />
+        <ul class="nav c-site-header__utility-nav__utilities__user__menu__links"
+        role="menu" aria-label="${Resource.msg('label.profile.myaccountlink', 'account', null)}">
+            <li class="nav-item c-site-header__utility-nav__utilities__user__menu__links__item" role="presentation">
+                <a href="${URLUtils.https('Account-Show')}" role="menuitem"
+                class="c-site-header__utility-nav__utilities__user__menu__links__item__link">
+                    <issvg name="svg-user" classname="c-icon--user c-site-header__utility-nav__utilities__user__menu__links__item__link__icon" />
+                    ${Resource.msg('link.header.myaccount', 'account', null)}
+                </a>
+            </li>
+            <li class="nav-item c-site-header__utility-nav__utilities__user__menu__links__item" role="presentation">
+                <a href="${trackOrdersLink}" role="menuitem"
+                class="c-site-header__utility-nav__utilities__user__menu__links__item__link">
+                    <issvg name="svg-track-manage-order" classname="c-icon--user c-site-header__utility-nav__utilities__user__menu__links__item__link__icon" />
+                    ${Resource.msg('link.header.myorders', 'account', null)}
+                </a>
+            </li>
+
+            <isif condition="${!isLoggedIn}">
+                <li class="s-site-header s-site-header--user-menu">
+                    <iscontentasset aid="user-menu-logged-out" />
+                </li>
+            <iselse/>
+                <li class="s-site-header s-site-header--user-menu">
+                    <iscontentasset aid="user-menu-logged-in" />
+                </li>
+                <li class="dropdown-item" role="menuitem">
+                    <a href="${URLUtils.https('Wishlist-Show')}" class="dropdown-link" role="button">
+                        <i class="fa fa-heart" aria-hidden="true"></i>
+                        ${Resource.msg('link.wishlist.myaccount', 'account', null)}
+                    </a>
+                </li>
+                <li class="nav-item c-site-header__utility-nav__utilities__user__menu__links__item" role="presentation">
+                    <a href="${URLUtils.url('Login-Logout')}" role="menuitem"
+                    class="c-site-header__utility-nav__utilities__user__menu__links__item__link">
+                        <issvg name="svg-sign-out" classname="c-icon--user c-site-header__utility-nav__utilities__user__menu__links__item__link__icon" />
+                        ${Resource.msg('link.header.logout', 'account', null)}
+                    </a>
+                </li>
+            </isif>
+
+        </ul>
+    </div>
+</isif>

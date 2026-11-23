@@ -1,0 +1,30 @@
+<iscomment> <div class="quantity-form-wishlist">
+    <label class="line-item-pricing-info quantity-label" for="quantity-${item.UUID}">${Resource.msg('field.selectquantity','cart',null)}</label>
+    <select class="form-control quantity custom-select"
+            data-uuid="${item.UUID}"
+            data-pid="${item.pid}"
+            data-pre-select-qty="${item.qty}"
+            id="quantity-${item.UUID}"
+            name="quantity">
+        <isloop begin="${item.minOrderQuantity}"
+                end="${item.maxOrderQuantity}"
+                status="status">
+            <isif condition="${item.qty === status.index}">
+                <option selected>${status.index}</option>
+            <iselse/>
+                <option>${status.index}</option>
+            </isif>
+        </isloop>
+    </select>
+</div> </iscomment>
+
+                                                                <div class="c-product-quantity product-quantity-item c-product-set__product-quantity">
+                                                                    <div class="c-product-quantity__nav d-flex">
+                                                                        <div class="c-product-quantity__button c-product-quantity__button--down js-quantity-input-down product-quantity-down">&#45;</div>
+                                                                        <label class="sr-only" for="qty_${item.SKU}">${Resource.msg('label.quantity', 'order', null)}</label>
+                                                                        <input value="${item.quantity ? item.quantity : 1}" type="number" id="qty_${item.SKU}" name="qty_${item.SKU}" min="${1}" max="${item.qtyOptions.length}" <isif condition="${!isReturnAllowed}">disabled="disabled"</isif>
+                                                                            class="js-product-qty-input c-product-quantity__input product-quantity-input quantity-select form-control quantity" aria-describedby="form-qty-error_${item.SKU}" />
+                                                                        <div class="c-product-quantity__button c-product-quantity__button--up product-quantity-up">&#43;</div>
+                                                                        <div class="invalid-feedback" id="form-qty-error_${item.SKU}"></div>
+                                                                    </div>
+                                                                </div>

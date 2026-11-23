@@ -1,0 +1,58 @@
+<isset name="tpaModel" value="${require('*/cartridge/scripts/helpers/tpaHelpers').getCurrentTPAModel()}" scope="page" />
+<isset name="loggedInWithCardlessPay" value="${require('*/cartridge/scripts/helpers/tpaHelpers').hasCardlessPay()}" scope="page" />
+
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <!---Profile--->
+        <isinclude template="account/profileCard"/>
+
+        <isif condition="${!pdict.account.isExternallyAuthenticated}">
+            <!---Password--->
+            <isinclude template="account/passwordCard"/>
+        </isif>
+        <isif condition="${tpaModel && tpaModel.balanceTracker.show}">
+            <isif condition="${session.custom.isConsent && loggedInWithCardlessPay}">
+                <!---Cardless Pay Card--->
+                <isinclude template="account/cardlessPayCard"/>
+            </isif>
+        </isif>
+
+        <!---Address Book--->
+        <isinclude template="account/addressBookCard"/>
+    </div>
+    <div class="col-md-6">
+        <isif condition="${dw.system.Site.getCurrent().getID() === 'FSASTORE'}">
+            <!---Deadline Tracker--->
+            <isinclude template="account/deadlineTrackerCard"/>
+        </isif>
+        <isif condition="${dw.system.Site.getCurrent().getID() === 'HSASTORE'}">
+            <!---Expense Dashboard--->
+            <div class="js-perk-card-info-container js-optedIn-render">           
+                <isinclude template="account/order/expense/expenseCard"/>
+            </div>
+        </isif>
+
+        <isif condition="${dw.system.Site.current.getCustomPreferenceValue('acEnableLoyalty')}">
+            <!---Perks Dashboard--->
+            <div class="js-perk-card-info-container">
+                <isinclude template="account/perksCard"/>
+            </div>
+        </isif>
+
+        <!---Order History--->
+        <isif condition="${pdict.order}">
+            <isinclude template="account/order/orderHistorySomCard"/>
+        </isif>
+
+        <isinclude template="account/storeCreditCard"/>
+
+        <!---Payment--->
+        <isinclude template="account/paymentCard"/>
+        <isif condition="${pdict.account.wishlist}">
+            <!---Wishlist--->
+            <div class="wishlist-account-card" data-error-msg="${Resource.msg('wishlist.removefromwishlist.failure.msg','wishlist',null)}">
+                <isinclude template="account/wishlist/listCards"/>
+            </div>
+        </isif>
+    </div>
+</div>

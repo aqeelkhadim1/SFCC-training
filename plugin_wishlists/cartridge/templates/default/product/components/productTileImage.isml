@@ -1,0 +1,44 @@
+<div class="c-product-tile__image-container image-container">
+    <a class="c-product-tile__image-container__tile-link" href="${pdict.urls.product}">
+        <isset name="noimagemedium" value="${URLUtils.staticURL('/images/noimagemedium.png')}" scope="page" />
+        <img class="c-product-tile__image-container__tile-image tile-image"
+            src="${!empty(product.images.medium) && !empty(product.images.medium[0]) ? product.images.medium[0].url : noimagemedium }"
+            srcset="${!empty(product.images.medium) && !empty(product.images.medium[0]) ?
+            product.images.medium[0].srcset : '' }"
+            loading="lazy"
+            alt="${product.productName}"
+            title="${!empty(product.images.medium) &&  !empty(product.images.medium[0]) ? product.images.medium[0].title : product.productName}"
+            height="350" width="350"
+             />
+        <isif condition="${product.badging != null}">
+            <span class="c-product-tile__image-container__badging" style="color: ${product.badgeTextColor !== null ? product.badgeTextColor : ''}; background-color: ${product.badgeBackgroundColor !== null ? product.badgeBackgroundColor : ''};">
+                <isprint value="${product.badging}" encoding="off" />
+            </span>
+        </isif>
+    </a>
+    <a class="wishlistTile" href="${URLUtils.url('Wishlist-AddProduct')}" title="${Resource.msg('wishlist.addto.wishlist.heart', 'wishlist', null)}">
+        <span class="fa-stack fa-lg">
+            <i class="fa fa-circle fa-inverse fa-stack-2x"></i>
+            <i class="fa fa-heart-o fa-stack-1x"></i>
+        </span>
+    </a>
+    <isif condition="${pdict.display.showQuickView !== false}">
+        <a class="quickview btn c-product-tile__image-container__quickview" href="${pdict.urls.quickView}"
+           data-toggle="modal"
+           data-target="#quickViewModal"
+           title="${Resource.msgf('button.quickview', 'common', null, product.productName)}"
+           aria-label="${Resource.msgf('button.quickview', 'common', null, product.productName)}"
+        >
+            ${Resource.msgf('button.quickview', 'common', null, product.productName)}
+        </a>
+    </isif>
+    <isif condition="${pdict.display.ratings !== false}">
+        <isif condition="${pdict.yotpoWidgetData && Object.prototype.hasOwnProperty.call(pdict.yotpoWidgetData, 'isRatingsEnabled') ? pdict.yotpoWidgetData.isRatingsEnabled : false}">
+            <isif condition="${product.logo}">
+                <div class="col-sm-4 c-product-tile__body__ratings__brand c-product-tile-brand text-right">
+                    <img class="c-product-tile__body__ratings__brand-image" src="${product.logo.getURL()}" alt="${product.brand}" title="${product.brand}"/>
+                </div>
+            </isif>
+        </isif>
+    </isif>
+</div>

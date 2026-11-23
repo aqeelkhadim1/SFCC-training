@@ -1,0 +1,28 @@
+<p>${Resource.msg('wishlist.landing.guest.description', 'wishlist', null)}</p>
+<isset name="currentSiteID" value="${dw.system.Site.getCurrent().getID()}" scope="page" />
+<div class="row justify-content-center">
+    <div class="col-sm-8 col-md-6">
+        <isinclude template="wishlist/components/list">
+    </div>
+    <div class="col-sm-8 col-md-6">
+        <div class="card">
+            <div class="card-body">
+                <div class="login-form-nav">
+                    <isinclude template="account/components/navTabs" />
+                    <div class="tab-content">
+                        <div class="tab-pane ${pdict.navTabValue === 'login' ? 'active' : ''}" id="login" role="tabpanel" aria-labelledby="login-tab">
+                            <isinclude template="account/components/loginForm" />
+                            <isinclude template="account/password/requestPasswordResetModal"/>
+                            <isif condition="${currentSiteID != 'WDH'}">
+                                <isinclude template="account/components/oauth" />
+                            </isif>
+                        </div>
+                        <div class="tab-pane ${pdict.navTabValue === "register" ? 'active' : ''}" id="register" role="tabpanel" aria-labelledby="register-tab">
+                            <isinclude template="account/components/registerForm" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
