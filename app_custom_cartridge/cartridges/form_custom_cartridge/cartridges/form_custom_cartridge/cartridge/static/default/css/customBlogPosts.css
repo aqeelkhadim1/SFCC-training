@@ -1,0 +1,33 @@
+.custom-blog-posts-container .card {
+  border-radius: 8px;
+  overflow: hidden;
+}
+.custom-blog-posts-container #cbp-posts-table th {
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  background-color: #f8f9fa;
+  color: #495057;
+  border-top: none;
+}
+.custom-blog-posts-container #cbp-posts-table .cbp-title-cell {
+  max-width: 240px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.custom-blog-posts-container #cbp-posts-table .cbp-desc-cell {
+  max-width: 320px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.custom-blog-posts-container .cbp-page-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+.custom-blog-posts-container .spinner-border-sm {
+  width: 1rem;
+  height: 1rem;
+  border-width: 0.15em;
+}

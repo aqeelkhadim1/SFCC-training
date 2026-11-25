@@ -1,0 +1,36 @@
+<isloop items="${pdict.posts}" var="post">
+    <tr id="cbp-row-${post.postId}">
+        <td class="align-middle font-weight-bold text-muted small">${post.postId}</td>
+        <td class="align-middle">
+            <span class="badge bg-light border text-secondary px-2 py-1">
+                ${Resource.msgf('badge.author.id', 'customBlogPosts', null, post.authorId)}
+            </span>
+        </td>
+        <td class="align-middle font-weight-bold text-dark cbp-title-cell">${post.title}</td>
+        <td class="align-middle text-muted cbp-desc-cell">${post.description}</td>
+        <td class="align-middle text-center">
+            <div class="btn-group btn-group-sm" role="group" aria-label="Post Actions">
+                <button type="button" class="btn btn-outline-warning cbp-edit-btn"
+                    data-bs-toggle="modal" data-bs-target="#customBlogPostModal"
+                    data-mode="edit"
+                    data-id="${post.postId}"
+                    data-authorid="${post.authorId}"
+                    data-title="${post.title}"
+                    data-description="${post.description}"
+                    data-url="${URLUtils.url('CustomBlogPosts-Save')}"
+                    data-modal-title="${Resource.msg('modal.edit.title', 'customBlogPosts', null)}"
+                    data-submit-label="${Resource.msg('button.update', 'customBlogPosts', null)}">
+                    ${Resource.msg('button.edit', 'customBlogPosts', null)}
+                </button>
+                <button type="button" class="btn btn-outline-danger cbp-delete-btn"
+                    data-bs-toggle="modal" data-bs-target="#customBlogPostModal"
+                    data-mode="delete"
+                    data-id="${post.postId}"
+                    data-title="${post.title}"
+                    data-url="${URLUtils.url('CustomBlogPosts-Delete')}">
+                    ${Resource.msg('button.delete', 'customBlogPosts', null)}
+                </button>
+            </div>
+        </td>
+    </tr>
+</isloop>

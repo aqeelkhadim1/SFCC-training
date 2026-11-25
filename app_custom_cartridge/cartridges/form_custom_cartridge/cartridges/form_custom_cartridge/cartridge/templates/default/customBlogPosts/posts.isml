@@ -1,0 +1,95 @@
+<isdecorate template="common/layout/page">
+    <isscript>
+        var assets = require('*/cartridge/scripts/assets.js');
+        assets.addJs('/js/customBlogPosts.js');
+        assets.addCss('/css/customBlogPosts.css');
+    </isscript>
+
+    <div class="container my-4 custom-blog-posts-container" id="custom-blog-posts-app"
+        data-list-url="${URLUtils.url('CustomBlogPosts-List')}"
+        data-csrf-name="${pdict.csrf.tokenName}"
+        data-csrf-token="${pdict.csrf.token}"
+        data-current-page="${pdict.pagination.page}"
+        data-delete-modal-title="${Resource.msg('modal.delete.title', 'customBlogPosts', null)}"
+        data-delete-submit-label="${Resource.msg('button.confirm.delete', 'customBlogPosts', null)}">
+
+        <div class="row align-items-center mb-4">
+            <div class="col-md-7">
+                <h1 class="h2 text-primary font-weight-bold mb-1">${Resource.msg('heading.page', 'customBlogPosts', null)}</h1>
+                <p class="text-muted mb-0">${Resource.msg('subheading.page', 'customBlogPosts', null)}</p>
+            </div>
+            <div class="col-md-5 text-md-right mt-3 mt-md-0">
+                <button type="button" class="btn btn-primary shadow-sm"
+                    data-bs-toggle="modal" data-bs-target="#customBlogPostModal"
+                    data-mode="create"
+                    data-url="${URLUtils.url('CustomBlogPosts-Save')}"
+                    data-modal-title="${Resource.msg('modal.create.title', 'customBlogPosts', null)}"
+                    data-submit-label="${Resource.msg('button.save', 'customBlogPosts', null)}">
+                    <i class="fa fa-plus-circle mr-1" aria-hidden="true"></i> ${Resource.msg('button.create.new', 'customBlogPosts', null)}
+                </button>
+            </div>
+        </div>
+
+        <div id="cbp-alert-container">
+            <isif condition="${pdict.error}">
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    ${pdict.error}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            </isif>
+        </div>
+
+        <div class="card shadow-sm border-0 mb-4">
+            <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                <h6 class="m-0 font-weight-bold text-dark">${Resource.msg('card.title.list', 'customBlogPosts', null)}</h6>
+                <span class="badge bg-primary text-white px-3 py-2" id="cbp-total-badge">${pdict.totalBadgeText}</span>
+            </div>
+
+            <div class="card-body p-0">
+                <div class="table-responsive ${pdict.posts && pdict.posts.length > 0 ? '' : 'd-none'}" id="cbp-table-wrap">
+                    <table class="table table-hover table-striped mb-0 text-left" id="cbp-posts-table">
+                        <thead class="thead-light">
+                            <tr>
+                                <th scope="col" style="width: 15%;">${Resource.msg('col.post.id', 'customBlogPosts', null)}</th>
+                                <th scope="col" style="width: 11%;">${Resource.msg('col.author.id', 'customBlogPosts', null)}</th>
+                                <th scope="col" style="width: 24%;">${Resource.msg('col.title', 'customBlogPosts', null)}</th>
+                                <th scope="col" style="width: 32%;">${Resource.msg('col.description', 'customBlogPosts', null)}</th>
+                                <th scope="col" class="text-center" style="width: 18%;">${Resource.msg('col.actions', 'customBlogPosts', null)}</th>
+                            </tr>
+                        </thead>
+                        <tbody id="cbp-table-body">
+                            <isinclude template="customBlogPosts/components/postRows" />
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="text-center py-5 ${pdict.posts && pdict.posts.length > 0 ? 'd-none' : ''}" id="cbp-empty-state">
+                    <i class="fa fa-folder-open-o fa-3x text-muted mb-3" aria-hidden="true"></i>
+                    <h5 class="text-muted">${Resource.msg('msg.no.records', 'customBlogPosts', null)}</h5>
+                    <p class="text-secondary small mb-0">${Resource.msg('msg.no.records.detail', 'customBlogPosts', null)}</p>
+                </div>
+            </div>
+
+            <div class="card-footer bg-white py-3 d-flex flex-column flex-md-row justify-content-between align-items-center ${pdict.pagination.totalRecords > 0 ? '' : 'd-none'}"
+                id="cbp-pagination-footer">
+                <div class="text-muted small mb-2 mb-md-0" id="cbp-page-info">${pdict.pageInfoText}</div>
+
+                <div class="btn-group btn-group-sm" role="group" aria-label="Pagination Controls">
+                    <button type="button" class="btn btn-outline-primary cbp-page-btn" id="cbp-prev-btn"
+                        data-page="${pdict.pagination.prevPage}"
+                        <isif condition="${!pdict.pagination.hasPrev}">disabled="disabled"</isif>>
+                        ${Resource.msg('pagination.prev', 'customBlogPosts', null)}
+                    </button>
+                    <button type="button" class="btn btn-primary" disabled="disabled" id="cbp-current-page-btn">${pdict.pagination.page}</button>
+                    <button type="button" class="btn btn-outline-primary cbp-page-btn" id="cbp-next-btn"
+                        data-page="${pdict.pagination.nextPage}"
+                        <isif condition="${!pdict.pagination.hasNext}">disabled="disabled"</isif>>
+                        ${Resource.msg('pagination.next', 'customBlogPosts', null)}
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <isinclude template="customBlogPosts/components/postModal" />
+</isdecorate>

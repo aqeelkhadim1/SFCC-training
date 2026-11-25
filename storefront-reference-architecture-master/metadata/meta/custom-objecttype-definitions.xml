@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<metadata xmlns="http://www.demandware.com/xml/impex/metadata/2006-10-31">
+    <custom-type type-id="CustomBlogPost">
+        <display-name xml:lang="x-default">Custom Blog Post</display-name>
+        <description xml:lang="x-default">Stores blog posts in SFCC Custom Objects for Task 5 CRUD and PagingModel pagination</description>
+        <staging-mode>no-staging</staging-mode>
+        <storage-scope>organization</storage-scope>
+        <key-definition attribute-id="postId">
+            <type>string</type>
+            <min-length>0</min-length>
+        </key-definition>
+        <attribute-definitions>
+            <attribute-definition attribute-id="authorId">
+                <display-name xml:lang="x-default">Author ID</display-name>
+                <description xml:lang="x-default">Positive integer author identifier</description>
+                <type>int</type>
+                <localizable-flag>false</localizable-flag>
+                <mandatory-flag>true</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+            </attribute-definition>
+            <attribute-definition attribute-id="title">
+                <display-name xml:lang="x-default">Title</display-name>
+                <description xml:lang="x-default">Post title (maximum 200 characters)</description>
+                <type>string</type>
+                <localizable-flag>false</localizable-flag>
+                <mandatory-flag>true</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="description">
+                <display-name xml:lang="x-default">Description</display-name>
+                <description xml:lang="x-default">Full blog post description content</description>
+                <type>text</type>
+                <localizable-flag>false</localizable-flag>
+                <mandatory-flag>true</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+            </attribute-definition>
+        </attribute-definitions>
+        <group-definitions>
+            <attribute-group group-id="CustomBlogPostDetails">
+                <display-name xml:lang="x-default">Custom Blog Post Details</display-name>
+                <attribute attribute-id="postId"/>
+                <attribute attribute-id="authorId"/>
+                <attribute attribute-id="title"/>
+                <attribute attribute-id="description"/>
+            </attribute-group>
+        </group-definitions>
+    </custom-type>
+</metadata>
