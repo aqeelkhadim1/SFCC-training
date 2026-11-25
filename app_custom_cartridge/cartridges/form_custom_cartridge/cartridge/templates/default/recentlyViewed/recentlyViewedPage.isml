@@ -1,0 +1,32 @@
+<isdecorate template="common/layout/page">
+    <isscript>
+        var assets = require('*/cartridge/scripts/assets.js');
+        assets.addJs('/js/productTile.js');
+        assets.addJs('/js/recentlyViewed.js');
+        assets.addCss('/css/recentlyViewed.css');
+    </isscript>
+
+    <isif condition="${pdict.products && pdict.products.length > 0}">
+        <isinclude template="recentlyViewed/recentlyViewedSection" />
+    <iselse/>
+        <div class="container recently-viewed-section my-5">
+            <div class="card shadow-sm border-0 text-center py-5">
+                <div class="card-body">
+                    <i class="fa fa-history fa-3x text-muted mb-3" aria-hidden="true"></i>
+                    <h2 class="h4 font-weight-bold text-dark mb-2">
+                        ${Resource.msg('heading.recently.viewed', 'recentlyViewed', null)}
+                    </h2>
+                    <p class="text-muted mb-1">
+                        ${Resource.msg('msg.empty.recently.viewed', 'recentlyViewed', null)}
+                    </p>
+                    <p class="text-secondary small mb-4">
+                        ${Resource.msg('msg.empty.recently.viewed.detail', 'recentlyViewed', null)}
+                    </p>
+                    <a href="${URLUtils.url('Home-Show')}" class="btn btn-primary px-4">
+                        ${Resource.msg('btn.start.shopping', 'recentlyViewed', null)}
+                    </a>
+                </div>
+            </div>
+        </div>
+    </isif>
+</isdecorate>

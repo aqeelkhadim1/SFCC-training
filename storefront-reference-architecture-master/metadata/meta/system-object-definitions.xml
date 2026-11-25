@@ -18,12 +18,21 @@
                 <visible-flag>true</visible-flag>
                 <searchable-flag>false</searchable-flag>
             </attribute-definition>
+            <attribute-definition attribute-id="recentlyViewedProducts">
+                <display-name xml:lang="x-default">Recently Viewed Products</display-name>
+                <description xml:lang="x-default">Stores up to 10 recently viewed product IDs as a JSON array string</description>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <visible-flag>true</visible-flag>
+                <searchable-flag>false</searchable-flag>
+            </attribute-definition>
         </custom-attribute-definitions>
         <group-definitions>
             <attribute-group group-id="Custom">
                 <display-name xml:lang="x-default">Custom Profile Attributes</display-name>
                 <attribute attribute-id="dateOfBirth"/>
                 <attribute attribute-id="phoneNumber"/>
+                <attribute attribute-id="recentlyViewedProducts"/>
             </attribute-group>
         </group-definitions>
     </type-extension>

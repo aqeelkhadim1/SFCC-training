@@ -14,6 +14,8 @@ var Resource = require('dw/web/Resource');
 var Transaction = require('dw/system/Transaction');
 // @ts-ignore
 var registrationValidationHelper = require('../scripts/helpers/registrationValidationHelper');
+// @ts-ignore
+var recentlyViewedHelper = require('*/cartridge/scripts/helpers/recentlyViewedHelper');
 
 /**
  * Invalidates a form field, sets its localized error message, and invalidates the base form element.
@@ -125,6 +127,32 @@ server.append('SubmitRegistration', function (req, res, next) {
                     profile.phoneHome = phoneValue;
                 });
             }
+
+            // Merge guest browsing history into newly registered customer profile
+            recentlyViewedHelper.mergeOnLogin(innerReq, innerRes, viewData.authenticatedCustomer);
+        }
+    });
+
+    return next();
+});
+
+/**
+ * Account-Login : Append middleware to merge guest Recently Viewed Products cookie
+ * into the authenticated customer's profile attribute without overwriting existing history.
+ * @name Base/Account-Login
+ * @function
+ * @memberof Account
+ * @param {Object} req - Request object
+ * @param {Object} res - Response object
+ * @param {Function} next - Next function
+ * @returns {void}
+ */
+server.append('Login', function (req, res, next) {
+    this.on('route:BeforeComplete', function (innerReq, innerRes) { // eslint-disable-line no-shadow
+        var viewData = innerRes.getViewData();
+
+        if (viewData && viewData.authenticatedCustomer) {
+            recentlyViewedHelper.mergeOnLogin(innerReq, innerRes, viewData.authenticatedCustomer);
         }
     });
 

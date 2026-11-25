@@ -33,11 +33,25 @@
                     </isif>
                 </isloop>
             </isif>
+            <!--- Custom Catalog Nav Link (All Storefront Catalog Products) --->
+            <li class="nav-item" role="presentation">
+                <a href="${URLUtils.url('Search-Show', 'cgid', 'root')}" id="nav-catalog-link" class="nav-link font-weight-bold"
+                    role="link" tabindex="0">
+                    <isprint value="${Resource.msg('label.nav.catalog', 'recentlyViewed', null)}" />
+                </a>
+            </li>
             <!--- Custom Posts Nav Link for Quick Access --->
             <li class="nav-item" role="presentation">
                 <a href="${URLUtils.url('ExternalApi-Show')}" id="nav-posts-link" class="nav-link font-weight-bold"
                     role="link" tabindex="0">
                     <isprint value="${Resource.msg('label.nav.posts', 'externalApi', null)}" />
+                </a>
+            </li>
+            <!--- Custom Recently Viewed Products Nav Link --->
+            <li class="nav-item" role="presentation">
+                <a href="${URLUtils.url('RecentlyViewed-List')}" id="nav-recently-viewed-link" class="nav-link font-weight-bold"
+                    role="link" tabindex="0">
+                    <isprint value="${Resource.msg('label.nav.recently.viewed', 'recentlyViewed', null)}" />
                 </a>
             </li>
             <isinclude url="${URLUtils.url('Account-Header', 'mobile', true)}" />

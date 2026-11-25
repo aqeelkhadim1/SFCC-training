@@ -1,0 +1,108 @@
+.recently-viewed-section .rv-carousel-wrapper {
+  position: relative;
+  padding: 0 24px;
+}
+.recently-viewed-section .rv-slider-btn {
+  position: absolute;
+  top: 45%;
+  transform: translateY(-50%);
+  z-index: 5;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border-radius: 50% !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #343a40;
+}
+.recently-viewed-section .rv-slider-btn.rv-slider-prev {
+  left: 0;
+}
+.recently-viewed-section .rv-slider-btn.rv-slider-next {
+  right: 0;
+}
+.recently-viewed-section .rv-slider-btn:hover:not(:disabled) {
+  background-color: #0070d2;
+  border-color: #0070d2;
+  color: #ffffff;
+}
+.recently-viewed-section .rv-slider-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+.recently-viewed-section .recently-viewed-card {
+  border-radius: 6px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.recently-viewed-section .recently-viewed-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 0.4rem 0.8rem rgba(0, 0, 0, 0.1) !important;
+}
+.recently-viewed-section .recently-viewed-card .product-tile {
+  min-height: 0 !important;
+  margin-bottom: 0;
+}
+.recently-viewed-section .recently-viewed-card .product-tile .image-container {
+  height: 135px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  margin-bottom: 0.4rem;
+}
+.recently-viewed-section .recently-viewed-card .product-tile .image-container a:not(.quickview) {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+}
+.recently-viewed-section .recently-viewed-card .product-tile .image-container .tile-image {
+  max-height: 135px;
+  width: auto !important;
+  max-width: 100%;
+  -o-object-fit: contain;
+     object-fit: contain;
+}
+.recently-viewed-section .recently-viewed-card .product-tile .image-container .quickview {
+  bottom: 0.35rem;
+  right: 0.35rem;
+}
+.recently-viewed-section .recently-viewed-card .product-tile .tile-body {
+  padding: 0.25rem 0 0 !important;
+}
+.recently-viewed-section .recently-viewed-card .product-tile .tile-body .color-swatches {
+  min-height: 1.5rem !important;
+  margin-bottom: 0.2rem;
+}
+.recently-viewed-section .recently-viewed-card .product-tile .tile-body .pdp-link {
+  font-size: 0.875rem;
+  line-height: 1.25;
+  margin-bottom: 0.15rem;
+}
+.recently-viewed-section .recently-viewed-card .product-tile .tile-body .price {
+  font-size: 0.95rem !important;
+}
+.recently-viewed-section .recently-viewed-card .product-tile .tile-body .tile-body-footer {
+  margin-top: 0.15rem;
+}
+.recently-viewed-section .recently-viewed-card .rv-availability .badge {
+  font-size: 0.7rem;
+  font-weight: 600;
+}
+.recently-viewed-section .rv-carousel-indicators {
+  position: static;
+  margin: 0.5rem 0 0;
+}
+.recently-viewed-section .rv-carousel-indicators button {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background-color: #adb5bd;
+  border: 0;
+  margin: 0 4px;
+}
+.recently-viewed-section .rv-carousel-indicators button.active {
+  background-color: #0070d2;
+}
