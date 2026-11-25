@@ -1,0 +1,94 @@
+<!--- Single Reusable Bootstrap Modal for Create, Edit & Delete CustomBlogPost --->
+<div class="modal fade" id="customBlogPostModal" tabindex="-1" role="dialog" aria-labelledby="customBlogPostModalTitle"
+    aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+        <div class="modal-content shadow border-0">
+            <div class="modal-header bg-primary text-white" id="cbp-modal-header">
+                <h5 class="modal-title font-weight-bold d-flex align-items-center" id="customBlogPostModalTitle">
+                    <i class="fa fa-plus-circle mr-2" id="cbp-modal-icon" aria-hidden="true"></i>
+                    <span id="cbp-modal-title-text">${Resource.msg('modal.create.title', 'customBlogPosts', null)}</span>
+                    <span id="cbp-modal-badge" class="badge bg-dark text-white ml-2 d-none"></span>
+                </h5>
+                <button type="button" id="cbp-modal-close-btn" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                    aria-label="Close"></button>
+            </div>
+            <form id="customBlogPostModalForm" action="" method="POST" novalidate>
+                <input type="hidden" id="cbp-action-mode" value="" />
+                <input type="hidden" id="cbp-post-id" name="postId" value="" />
+                <input type="hidden" id="cbp-csrf-token" name="${pdict.csrf.tokenName}" value="${pdict.csrf.token}" />
+
+                <div class="modal-body p-4">
+                    <div id="cbp-modal-alert"></div>
+
+                    <div id="cbp-form-fields">
+                        <div class="form-group mb-3">
+                            <label for="cbp-author-id" class="font-weight-bold text-dark">
+                                ${Resource.msg('label.form.authorid', 'customBlogPosts', null)} <span class="text-danger">*</span>
+                            </label>
+                            <input type="number" class="form-control" id="cbp-author-id" name="authorId"
+                                placeholder="${Resource.msg('placeholder.form.authorid', 'customBlogPosts', null)}" min="1" step="1"
+                                required="required" />
+                            <div class="invalid-feedback" id="cbp-authorId-error"
+                                data-required-msg="${Resource.msg('error.authorid.required', 'customBlogPosts', null)}"
+                                data-datatype-msg="${Resource.msg('error.authorid.datatype', 'customBlogPosts', null)}">
+                                ${Resource.msg('error.authorid.datatype', 'customBlogPosts', null)}
+                            </div>
+                        </div>
+
+                        <div class="form-group mb-3">
+                            <label for="cbp-title" class="font-weight-bold text-dark">
+                                ${Resource.msg('label.form.title', 'customBlogPosts', null)} <span class="text-danger">*</span>
+                            </label>
+                            <input type="text" class="form-control" id="cbp-title" name="title"
+                                placeholder="${Resource.msg('placeholder.form.title', 'customBlogPosts', null)}" maxlength="200"
+                                required="required" />
+                            <div class="invalid-feedback" id="cbp-title-error"
+                                data-required-msg="${Resource.msg('error.title.required', 'customBlogPosts', null)}"
+                                data-maxlength-msg="${Resource.msg('error.title.maxlength', 'customBlogPosts', null)}">
+                                ${Resource.msg('error.title.required', 'customBlogPosts', null)}
+                            </div>
+                        </div>
+
+                        <div class="form-group mb-3">
+                            <label for="cbp-description" class="font-weight-bold text-dark">
+                                ${Resource.msg('label.form.description', 'customBlogPosts', null)} <span class="text-danger">*</span>
+                            </label>
+                            <textarea class="form-control" id="cbp-description" name="description" rows="4"
+                                placeholder="${Resource.msg('placeholder.form.description', 'customBlogPosts', null)}"
+                                required="required"></textarea>
+                            <div class="invalid-feedback" id="cbp-description-error"
+                                data-required-msg="${Resource.msg('error.description.required', 'customBlogPosts', null)}">
+                                ${Resource.msg('error.description.required', 'customBlogPosts', null)}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="cbp-delete-preview" class="d-none">
+                        <p class="mb-2">${Resource.msg('modal.delete.confirm', 'customBlogPosts', null)}</p>
+                        <div class="card bg-light p-3 border">
+                            <p class="mb-1">
+                                <strong>${Resource.msg('modal.delete.label.id', 'customBlogPosts', null)}</strong>
+                                <span id="cbp-delete-id" class="badge bg-secondary text-white"></span>
+                            </p>
+                            <p class="mb-0 text-muted">
+                                <strong>${Resource.msg('modal.delete.label.title', 'customBlogPosts', null)}</strong>
+                                <span id="cbp-delete-title" class="font-italic"></span>
+                            </p>
+                        </div>
+                        <small class="text-danger mt-2 d-block">${Resource.msg('modal.delete.note', 'customBlogPosts', null)}</small>
+                    </div>
+                </div>
+
+                <div class="modal-footer bg-light">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        ${Resource.msg('button.cancel', 'customBlogPosts', null)}
+                    </button>
+                    <button type="submit" class="btn btn-primary px-4 font-weight-bold shadow-sm" id="cbp-submit-btn">
+                        <span class="spinner-border spinner-border-sm d-none mr-1" role="status" aria-hidden="true"></span>
+                        <span id="cbp-submit-text">${Resource.msg('button.save', 'customBlogPosts', null)}</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
