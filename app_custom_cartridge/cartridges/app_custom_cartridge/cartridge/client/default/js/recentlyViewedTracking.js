@@ -11,16 +11,17 @@ $(document).ready(function () {
     if (!productId) return;
 
     function trackView() {
-        var token = $('input[name="csrf_token"]').first().val();
-        if (!token) return;
+        var $consent = $('.tracking-consent').first();
+        var tokenName = $consent.attr('data-tokenname');
+        var token = $consent.attr('data-token');
+        if (!tokenName || !token) return;
+        var data = { pid: productId };
+        data[tokenName] = token;
         $.ajax({
             url: tracking,
             type: 'POST',
             dataType: 'json',
-            data: {
-                pid: productId,
-                csrf_token: token
-            },
+            data: data,
             global: false
         });
     }

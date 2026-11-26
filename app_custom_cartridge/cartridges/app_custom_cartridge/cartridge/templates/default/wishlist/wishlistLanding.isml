@@ -1,0 +1,61 @@
+<isdecorate template="common/layout/page">
+    <isscript>
+        var assets = require('*/cartridge/scripts/assets.js');
+        assets.addCss('/css/wishlist.css');
+        assets.addJs('/js/wishlist.js');
+        assets.addCss('/css/login.css');
+        assets.addCss('/css/registrationValidation.css');
+        assets.addCss('/css/shopmeWishlistCards.css');
+        assets.addJs('/js/login.js');
+    </isscript>
+    <div class="hero slant-down login-banner">
+        <h1 class="page-title">${Resource.msg('wishlist.hero.image.header', 'wishlist', null)}</h1>
+    </div>
+    <div class="container ${pdict.loggedIn ? '' : 'login-page'}">
+        <!---Breadcrumbs--->
+        <isinclude template="components/breadcrumbs/pageBreadcrumbs"/>
+        <isset name="canDeleteWishlist" value="${pdict.wishlist && pdict.wishlist.items.length > 0 && !pdict.wishlist.publicView}" scope="page" />
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+            <a class="btn btn-outline-primary btn-sm" href="${URLUtils.https('Wishlist-Search')}">
+                ${Resource.msg('txt.heading.wishlist.search', 'wishlist', null)}
+            </a>
+            <isif condition="${canDeleteWishlist}">
+                <button type="button" class="btn btn-outline-danger btn-sm wishlist-nonempty-control" data-bs-toggle="modal" data-bs-target="#deleteWishlistModal">
+                    ${Resource.msg('wishlist.delete.button', 'wishlist', 'Delete Wishlist')}
+                </button>
+            </isif>
+        </div>
+        <isif condition="${canDeleteWishlist}">
+            <div class="modal fade" id="deleteWishlistModal" tabindex="-1" aria-hidden="true"
+                aria-labelledby="deleteWishlistTitle" aria-describedby="deleteWishlistDescription">
+                <div class="modal-dialog modal-dialog-centered">
+                    <form class="modal-content" method="post" action="${URLUtils.https('Wishlist-RemoveList')}">
+                        <input type="hidden" name="${pdict.csrf.tokenName}" value="${pdict.csrf.token}" />
+                        <input type="hidden" name="listID" value="${pdict.wishlist.UUID}" />
+                        <div class="modal-header">
+                            <h2 class="modal-title h5" id="deleteWishlistTitle">
+                                ${Resource.msg('wishlist.delete.button', 'wishlist', 'Delete Wishlist')}
+                            </h2>
+                        </div>
+                        <div class="modal-body" id="deleteWishlistDescription">
+                            ${Resource.msg('wishlist.delete.confirm', 'wishlist', 'Delete this wishlist and all its saved items?')}
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                                ${Resource.msg('button.cancel', 'common', 'Cancel')}
+                            </button>
+                            <button type="submit" class="btn btn-danger">
+                                ${Resource.msg('wishlist.delete.button', 'wishlist', 'Delete Wishlist')}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </isif>
+        <isif condition="${pdict.loggedIn}">
+            <isinclude template="wishlist/components/wishlist" />
+        <iselse>
+            <isinclude template="wishlist/components/login" />
+        </isif>
+    </div>
+</isdecorate>

@@ -1,0 +1,17 @@
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h2>${Resource.msg('label.wishlist', 'account', null)}</h2>
+        <a href="${URLUtils.url('Wishlist-Show')}">${Resource.msg('link.viewall', 'account', null)}</a>
+    </div>
+    <div class="card-body card-info-group">
+        <isif condition="${pdict.account.wishlist && pdict.account.wishlist.length}">
+            <isloop items="${pdict.account.wishlist}" var="item">
+                <isif condition="${item}">
+                    <isinclude template="account/wishlist/listCard" />
+                </isif>
+            </isloop>
+        <iselse>
+            <p class="text-center empty-wishlist-msg">${Resource.msg('wishlist.empty.text', 'wishlist', null)}</p>
+        </isif>
+    </div>
+</div>

@@ -9,7 +9,8 @@
     "cartridges/mycartridge"
   ],
   "paths": {
-    "base": "../storefront-reference-architecture-master/cartridges/app_storefront_base"
+    "base": "../storefront-reference-architecture-master/cartridges/app_storefront_base",
+    "wishlist": "../plugin_wishlists"
   },
   "scripts": {
     "compile:js": "node ../storefront-reference-architecture-master/node_modules/sgmf-scripts/index.js --compile js",

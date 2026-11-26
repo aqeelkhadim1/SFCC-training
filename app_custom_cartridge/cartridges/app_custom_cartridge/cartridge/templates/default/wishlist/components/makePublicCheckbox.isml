@@ -1,0 +1,12 @@
+<isif condition="${pdict.publicOption}">
+    <div class="custom-control custom-checkbox wishlist-hide">
+        <input class="custom-control-input" type="checkbox" value="true" id="isPublic-${item.UUID}"
+            name="isPublic-${item.UUID}" data-id="${item.UUID}" data-list-id="${pdict.wishlist.UUID}"
+            data-item-visibility-url="${URLUtils.url('ProductList-TogglePublic', 'type', 10)}"
+            data-visibility-error="${Resource.msg('list.togglepublic.error.msg', 'productlist', null)}"
+            ${item.master || !item.publicItem ? 'checked="checked"' : ''} ${item.master ? 'disabled="disabled"' : ''} />
+        <label for="isPublic-${item.UUID}" class="custom-control-label wishlist-item-checkbox">
+            ${Resource.msg('checkbox.makePublic', 'wishlist', null)}
+        </label>
+    </div>
+</isif>

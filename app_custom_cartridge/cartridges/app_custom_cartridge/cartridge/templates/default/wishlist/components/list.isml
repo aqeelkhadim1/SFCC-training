@@ -1,0 +1,31 @@
+<div class="${pdict.wishlistFragment ? 'wishlist-list-content' : 'wishlist-list wishlistItemCards'}" data-error-msg="${Resource.msg('wishlist.remove.error', 'wishlist', null)}">
+    <div id="wishlist-product-grid" class="wishlist-card-grid">
+        <isif condition="${pdict.wishlist && pdict.wishlist.items.length}">
+            <isloop items="${pdict.wishlist.items}" var="item">
+                <isif condition="${!pdict.wishlist.publicView || item.publicItem}">
+                    <isinclude template="wishlist/components/wishlistProductCard" />
+                </isif>
+            </isloop>
+        <iselse>
+            <p class="wishlist-empty text-center py-4" role="status">${Resource.msg('wishlist.empty.text', 'wishlist', null)}</p>
+        </isif>
+    </div>
+    <span class="wishlistItemCardsData" hidden
+        data-uuid="${pdict.wishlist ? pdict.wishlist.UUID : ''}"
+        data-href="${URLUtils.url('Wishlist-MoreList')}"
+        data-page-number="${pdict.wishlist ? pdict.wishlist.pageNumber || 1 : 1}"
+        data-public-view="${pdict.wishlist ? pdict.wishlist.publicView : false}"></span>
+    <isif condition="${pdict.wishlist && pdict.wishlist.showMore}">
+        <div class="wishlist-more text-center mt-4">
+            <button type="button" class="btn btn-outline-primary more-wl-items" aria-controls="wishlist-product-grid">
+                ${Resource.msg('text.link.show.more.results.wl', 'wishlist', 'Show More')}
+            </button>
+        </div>
+    </isif>
+    <isif condition="${pdict.wishlist && pdict.wishlist.items.length}">
+        <div class="mt-4">
+            <isset name="shareLinks" value="${pdict.socialLinks}" scope="page" />
+            <isinclude template="wishlist/components/socialsharing" />
+        </div>
+    </isif>
+</div>

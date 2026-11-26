@@ -1,0 +1,56 @@
+<article class="card h-auto align-self-start wishlist-product-card product-info uuid-${item.UUID} pid-${item.pid}">
+    <div class="wishlist-card-media position-relative">
+        <a class="wishlist-card-image h-100" href="${URLUtils.url('Product-Show', 'pid', item.pid)}">
+            <img class="product-image" loading="lazy"
+                src="${!empty(item.imageObj.small) && !empty(item.imageObj.small[0]) ? item.imageObj.small[0].url : URLUtils.staticURL('/images/noimagemedium.png')}"
+                alt="${item.name}" />
+        </a>
+        <isif condition="${!pdict.wishlist.publicView}">
+            <div class="wishlist-card-remove position-absolute top-0 end-0 m-2">
+                <button type="button" class="remove-from-wishlist btn btn-light"
+                    data-url="${URLUtils.url('Wishlist-RemoveProduct', 'pid', item.pid)}"
+                    aria-label="${item.variantAttributes ? Resource.msgf('wishlist.remove.item.variant', 'wishlist', null, item.name, item.variantAttributes) : Resource.msgf('wishlist.remove.item', 'wishlist', null, item.name)}">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+        </isif>
+    </div>
+    <div class="card-body d-flex flex-column flex-grow-0 pb-2">
+        <div class="line-item-header">
+            <div class="line-item-name">${item.name}</div>
+        </div>
+        <div class="wishlist-card-price mb-1">
+            <isset name="price" value="${item.priceObj}" scope="page" />
+            <isinclude template="product/components/pricing/main" />
+        </div>
+        <div class="d-flex flex-wrap align-items-baseline gap-2">
+            <isinclude template="wishlist/components/wishlistProductCardAvailability" />
+            <isif condition="${!pdict.wishlist.publicView && !item.master && !item.bundle}">
+                <div class="wishlist-card-attributes edit-add-to-wishlist ms-auto">
+                    <a class="edit" href="${URLUtils.url('Wishlist-GetProduct', 'uuid', item.UUID, 'pid', item.pid)}"
+                        aria-label="${Resource.msgf('wishlist.edit.item', 'wishlist', null, item.name)}">
+                        ${Resource.msg('link.edit.item', 'cart', null)}
+                    </a>
+                </div>
+            </isif>
+        </div>
+        <div class="wishlist-card-actions pt-2">
+            <isinclude template="wishlist/components/makePublicCheckbox" />
+            <isif condition="${item.master}">
+                <isinclude template="wishlist/components/selectAttributesButton" />
+            <iselse>
+                <div class="wishlist-card-purchase d-flex flex-row flex-nowrap align-items-center gap-2">
+                    <isinclude template="wishlist/components/productCardQuantitySelector" />
+                    <button type="button" class="wishlist-cart-icon add-to-cart btn btn-primary ms-auto"
+                        data-pid="${item.pid}"
+                        data-url="${URLUtils.url('Cart-AddProduct')}"
+                        data-option="${JSON.stringify(item.selectedOptions)}"
+                        aria-label="${Resource.msg('button.addtocart', 'common', null)}"
+                        ${!item.available ? 'disabled' : ''}>
+                        <i class="fa fa-shopping-bag" aria-hidden="true"></i>
+                    </button>
+                </div>
+            </isif>
+        </div>
+    </div>
+</article>

@@ -1,0 +1,120 @@
+@charset "UTF-8";
+
+@import "~base/variables";
+@import "bootstrap/scss/functions";
+@import "bootstrap/scss/variables";
+@import "~wishlist/wishlist/wishlist";
+@import "~wishlist/wishlist/dashboard";
+
+// The plugin's selectors remain intact while using Bootstrap 5 form spacing.
+.wishlist-hide .custom-control-input {
+    margin-right: 0.5rem;
+}
+
+// Use the plugin's page template at full width for the requested card grid.
+.container > .row.justify-content-center > .col-sm-8.col-md-6:only-child {
+    width: 100%;
+}
+
+.wishlist-card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
+    align-items: stretch;
+    gap: 1.5rem;
+
+    @media (max-width: 575.98px) {
+        grid-template-columns: 1fr;
+    }
+}
+
+.wishlist-empty {
+    grid-column: 1 / -1;
+}
+
+.wishlist-product-card.product-info {
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    border: 1px solid $grey2;
+    border-radius: 0.75rem;
+    box-shadow: 0 3px 12px rgba(0, 0, 0, 0.06);
+
+    .wishlist-card-image {
+        display: block;
+        padding: 1rem;
+        background: $white;
+
+        img {
+            display: block;
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+    }
+
+    .line-item-name {
+        flex: 1;
+        min-width: 0;
+        width: auto;
+        min-height: 2.75rem;
+        margin: 0 0 0.75rem;
+        white-space: normal;
+        line-height: 1.375rem;
+    }
+
+    .line-item-header {
+        display: flex;
+        align-items: flex-start;
+        gap: 0.5rem;
+
+        > .d-lg-none {
+            display: block !important;
+        }
+    }
+
+    .remove-btn {
+        position: static;
+        margin: 0;
+    }
+
+    .wishlist-card-attributes {
+        display: flex;
+        justify-content: space-between;
+        gap: 0.5rem;
+        color: $grey6;
+        font-size: 0.875rem;
+    }
+
+    .wishlist-hide {
+        margin: 0 0 1rem;
+        font-size: 0.875rem;
+    }
+
+    .wishlist-card-purchase {
+        display: flex;
+        align-items: flex-end;
+        gap: 0.5rem;
+
+        .quantity-form-wishlist {
+            flex: 0 0 4.5rem;
+        }
+
+        .add-to-cart-wishList {
+            flex: 1;
+            min-width: 0;
+            width: auto;
+        }
+    }
+
+    .add-to-cart-wishList .add-to-cart,
+    .select-attributes-wishList .select-attributes-btn {
+        float: none;
+        width: 100%;
+        margin: 0;
+    }
+}
+
+.wishlist-more .more-wl-items {
+    min-width: 12rem;
+    margin: 0;
+}

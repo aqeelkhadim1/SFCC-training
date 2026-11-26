@@ -5,29 +5,31 @@
     <section class="container home-product-tiles homepage my-4" aria-labelledby="recently-viewed-heading">
         <h2 id="recently-viewed-heading">${Resource.msg('heading.recentlyViewed', 'recentlyViewed', null)}</h2>
         <div id="recently-viewed-carousel" class="d-flex align-items-center gap-2">
-            <button class="recently-viewed-control btn btn-light rounded-circle d-none"
-                type="button" data-scroll-direction="-1" aria-controls="recently-viewed-track">
+            <button class="recently-viewed-control btn btn-light rounded-circle d-none" type="button"
+                data-scroll-direction="-1" aria-controls="recently-viewed-track">
                 <span class="fa fa-chevron-left" aria-hidden="true"></span>
                 <span class="visually-hidden">${Resource.msg('button.previous', 'common', null)}</span>
             </button>
-            <div id="recently-viewed-track" class="recently-viewed-track d-flex py-3" tabindex="0"
-                role="group" aria-labelledby="recently-viewed-heading">
+            <div id="recently-viewed-track" class="recently-viewed-track d-flex py-3" tabindex="0" role="group"
+                aria-labelledby="recently-viewed-heading">
                 <isloop items="${pdict.recentlyViewedProducts}" var="viewedProduct">
-                    <div class="recently-viewed-item col-6 col-lg-3 flex-shrink-0 px-2 position-relative" data-recently-viewed-product>
+                    <div class="recently-viewed-item col-6 col-lg-3 flex-shrink-0 px-2 position-relative"
+                        data-recently-viewed-product>
                         <isscript>
                             // Supply the standard grid tile's context within this isolated include.
                             pdict.product = viewedProduct.product;
                             pdict.urls = viewedProduct.urls;
                         </isscript>
                         <isinclude template="product/gridTile" />
-                        <span class="badge bg-success-subtle text-success-emphasis position-absolute top-0 end-0 mt-3 me-4">
+                        <span
+                            class="badge bg-success-subtle text-success-emphasis position-absolute top-0 start-0 mt-3 ms-4">
                             ${Resource.msg('label.available', 'recentlyViewed', null)}
                         </span>
                     </div>
                 </isloop>
             </div>
-            <button class="recently-viewed-control btn btn-light rounded-circle d-none"
-                type="button" data-scroll-direction="1" aria-controls="recently-viewed-track">
+            <button class="recently-viewed-control btn btn-light rounded-circle d-none" type="button"
+                data-scroll-direction="1" aria-controls="recently-viewed-track">
                 <span class="fa fa-chevron-right" aria-hidden="true"></span>
                 <span class="visually-hidden">${Resource.msg('button.next', 'common', null)}</span>
             </button>

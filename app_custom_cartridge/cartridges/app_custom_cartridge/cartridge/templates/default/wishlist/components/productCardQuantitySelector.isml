@@ -1,0 +1,11 @@
+<div class="quantity-form-wishlist">
+    <label class="visually-hidden" for="quantity-${item.UUID}">${Resource.msg('field.selectquantity', 'cart', null)}</label>
+    <select class="form-select quantity" id="quantity-${item.UUID}" name="quantity" data-uuid="${item.UUID}"
+        data-pid="${item.pid}">
+        <isloop begin="${item.minOrderQuantity}" end="${item.maxOrderQuantity || item.minOrderQuantity}"
+            status="quantityStatus">
+            <option value="${quantityStatus.index}" ${item.qty === quantityStatus.index ? 'selected' : ''}>
+                ${quantityStatus.index}</option>
+        </isloop>
+    </select>
+</div>

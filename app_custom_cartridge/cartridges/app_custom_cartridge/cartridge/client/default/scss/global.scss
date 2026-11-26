@@ -1,0 +1,22 @@
+@charset "UTF-8";
+
+@import "~base/global";
+@import "~wishlist/components/wishlistGlobal";
+
+.navbar-header .header-wishlist {
+    display: inline-block;
+    margin: 1.125em 0 0 0.5em;
+    line-height: 2.25em;
+    vertical-align: top;
+
+    a {
+        display: inline-block;
+        padding: 0 0.25em;
+        text-decoration: none;
+    }
+
+    .fa-heart-o {
+        font-size: 1.5em;
+        vertical-align: middle;
+    }
+}

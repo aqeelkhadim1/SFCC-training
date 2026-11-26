@@ -1,0 +1,29 @@
+<isset name="tileImage" value="${!empty(product.images.medium) && !empty(product.images.medium[0]) ? product.images.medium[0] : null}" scope="page" />
+<div class="image-container">
+    <a href="${pdict.urls.product}">
+        <img class="tile-image"
+            src="${tileImage ? tileImage.url : URLUtils.staticURL('/images/noimagemedium.png')}"
+            alt="${tileImage && tileImage.alt ? tileImage.alt : product.productName}"
+            title="${tileImage && tileImage.title ? tileImage.title : product.productName}"
+            loading="lazy" />
+    </a>
+    <a class="wishlistTile" href="${URLUtils.url('Wishlist-AddProduct')}"
+        title="${Resource.msg('wishlist.addto.wishlist.heart', 'wishlist', null)}"
+        aria-label="${Resource.msg('wishlist.addto.wishlist.heart', 'wishlist', null)}">
+        <span class="fa-stack fa-lg" aria-hidden="true">
+            <i class="fa fa-circle fa-inverse fa-stack-2x"></i>
+            <i class="fa fa-heart-o fa-stack-1x"></i>
+        </span>
+    </a>
+    <isif condition="${pdict.display.showQuickView !== false}">
+        <a class="quickview hidden-sm-down" href="${pdict.urls.quickView}"
+            data-bs-toggle="modal" data-bs-target="#quickViewModal"
+            title="${Resource.msgf('button.quickview', 'common', null, product.productName)}"
+            aria-label="${Resource.msgf('button.quickview', 'common', null, product.productName)}">
+            <span class="fa-stack fa-lg" aria-hidden="true">
+                <i class="fa fa-circle fa-inverse fa-stack-2x"></i>
+                <i class="fa fa-expand fa-stack-1x"></i>
+            </span>
+        </a>
+    </isif>
+</div>

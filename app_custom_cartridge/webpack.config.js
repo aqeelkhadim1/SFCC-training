@@ -104,6 +104,7 @@ module.exports = [
                                 implementation: sass,
                                 sassOptions: {
                                     includePaths: [
+                                        path.resolve(__dirname, '../storefront-reference-architecture-master/cartridges/app_storefront_base/cartridge/client/default/scss'),
                                         localModules,
                                         baseModules
                                     ]
