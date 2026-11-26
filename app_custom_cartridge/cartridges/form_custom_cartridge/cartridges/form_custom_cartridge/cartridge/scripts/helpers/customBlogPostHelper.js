@@ -60,6 +60,21 @@ function listResponse(success, posts, paging, error) {
     };
 }
 
+function getNextAuthorId() {
+    var maxId = 0;
+    var iterator = null;
+    try {
+        iterator = CustomObjectMgr.getAllCustomObjects(CUSTOM_OBJECT_TYPE);
+        while (iterator.hasNext()) {
+            var currentId = parseInt(iterator.next().custom.authorId, 10) || 0;
+            if (currentId > maxId) { maxId = currentId; }
+        }
+    } finally {
+        if (iterator && typeof iterator.close === 'function') { iterator.close(); }
+    }
+    return maxId + 1;
+}
+
 /** Validates required fields and datatypes for Create & Update payloads. */
 function validatePostPayload(formData) {
     var payload = formData || {};
@@ -68,7 +83,7 @@ function validatePostPayload(formData) {
     var description = payload.description !== undefined ? String(payload.description).trim() : '';
     var errors = {};
 
-    if (!rawAuthor) { errors.authorId = msg('error.authorid.required'); } else if (!/^\d+$/.test(rawAuthor) || parseInt(rawAuthor, 10) <= 0) { errors.authorId = msg('error.authorid.datatype'); }
+    if (rawAuthor && (!/^\d+$/.test(rawAuthor) || parseInt(rawAuthor, 10) <= 0)) { errors.authorId = msg('error.authorid.datatype'); }
     if (!title) { errors.title = msg('error.title.required'); } else if (title.length > MAX_TITLE_LENGTH) { errors.title = msg('error.title.maxlength'); }
     if (!description) { errors.description = msg('error.description.required'); }
 
@@ -76,11 +91,15 @@ function validatePostPayload(formData) {
     return {
         isValid: isValid,
         errors: errors,
-        data: isValid ? { authorId: parseInt(rawAuthor, 10), title: title, description: description } : null
+        data: isValid ? {
+            authorId: rawAuthor ? parseInt(rawAuthor, 10) : null,
+            title: title,
+            description: description
+        } : null
     };
 }
 
-/** Combined Create & Update helper: updates when postId exists, else creates a new CustomBlogPost. */
+/** Combined Create & Update helper: auto-generates postId & sequential authorId on create, preserves on edit. */
 function savePost(formData) {
     var validation = validatePostPayload(formData);
     if (!validation.isValid) { return { success: false, errors: validation.errors }; }
@@ -92,13 +111,14 @@ function savePost(formData) {
         var existing = isEdit ? CustomObjectMgr.getCustomObject(CUSTOM_OBJECT_TYPE, postId) : null;
         if (isEdit && !existing) { return { success: false, error: msg('error.post.not.found') }; }
 
+        var resolvedAuthorId = validation.data.authorId || (existing ? existing.custom.authorId : getNextAuthorId());
         var savedPost = null;
         Transaction.wrap(function () {
             var target = existing || CustomObjectMgr.createCustomObject(
                 CUSTOM_OBJECT_TYPE,
                 'POST-' + UUIDUtils.createUUID().replace(/-/g, '').slice(0, 10).toUpperCase()
             );
-            target.custom.authorId = validation.data.authorId;
+            target.custom.authorId = resolvedAuthorId;
             target.custom.title = validation.data.title;
             target.custom.description = validation.data.description;
             savedPost = serializePost(target);

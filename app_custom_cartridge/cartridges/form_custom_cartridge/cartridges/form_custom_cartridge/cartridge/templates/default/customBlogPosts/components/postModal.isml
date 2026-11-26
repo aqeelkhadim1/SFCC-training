@@ -22,20 +22,6 @@
 
                     <div id="cbp-form-fields">
                         <div class="form-group mb-3">
-                            <label for="cbp-author-id" class="font-weight-bold text-dark">
-                                ${Resource.msg('label.form.authorid', 'customBlogPosts', null)} <span class="text-danger">*</span>
-                            </label>
-                            <input type="number" class="form-control" id="cbp-author-id" name="authorId"
-                                placeholder="${Resource.msg('placeholder.form.authorid', 'customBlogPosts', null)}" min="1" step="1"
-                                required="required" />
-                            <div class="invalid-feedback" id="cbp-authorId-error"
-                                data-required-msg="${Resource.msg('error.authorid.required', 'customBlogPosts', null)}"
-                                data-datatype-msg="${Resource.msg('error.authorid.datatype', 'customBlogPosts', null)}">
-                                ${Resource.msg('error.authorid.datatype', 'customBlogPosts', null)}
-                            </div>
-                        </div>
-
-                        <div class="form-group mb-3">
                             <label for="cbp-title" class="font-weight-bold text-dark">
                                 ${Resource.msg('label.form.title', 'customBlogPosts', null)} <span class="text-danger">*</span>
                             </label>

@@ -17,7 +17,6 @@ $(document).ready(function () {
     };
 
     var RULES = [
-        { sel: '#cbp-author-id', err: '#cbp-authorId-error', fn: function (v) { return /^\d+$/.test(v) && parseInt(v, 10) > 0 ? '' : 'data-datatype-msg'; } },
         { sel: '#cbp-title', err: '#cbp-title-error', fn: function (v) { return v.length <= 200 ? '' : 'data-maxlength-msg'; } },
         { sel: '#cbp-description', err: '#cbp-description-error', fn: function () { return ''; } }
     ];
@@ -142,7 +141,6 @@ $(document).ready(function () {
             $('#cbp-delete-id').text(authorId || postId);
             $('#cbp-delete-title').text($btn.attr('data-title') || '');
         } else if (mode === 'edit') {
-            $('#cbp-author-id').val(authorId);
             $('#cbp-title').val($btn.attr('data-title') || '');
             $('#cbp-description').val($btn.attr('data-description') || '');
         }
