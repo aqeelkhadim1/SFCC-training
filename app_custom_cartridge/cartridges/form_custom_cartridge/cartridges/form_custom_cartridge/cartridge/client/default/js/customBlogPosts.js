@@ -134,7 +134,7 @@ $(document).ready(function () {
         $modal.find('.modal-dialog').toggleClass('modal-lg', !cfg.del);
         $submitBtn.removeClass('btn-primary btn-warning btn-danger').addClass(cfg.btn);
         $('#cbp-submit-text').text($btn.attr('data-submit-label') || $app.attr('data-delete-submit-label') || 'Submit');
-        $('#cbp-form-fields').toggleClass('d-none', cfg.del);
+        $('#cbp-form-fields').toggleClass('d-none', cfg.del).find('input, textarea').prop('disabled', cfg.del);
         $('#cbp-delete-preview').toggleClass('d-none', !cfg.del);
 
         if (cfg.del) {

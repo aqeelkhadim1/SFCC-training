@@ -26,8 +26,7 @@
                                 ${Resource.msg('label.form.title', 'customBlogPosts', null)} <span class="text-danger">*</span>
                             </label>
                             <input type="text" class="form-control" id="cbp-title" name="title"
-                                placeholder="${Resource.msg('placeholder.form.title', 'customBlogPosts', null)}" maxlength="200"
-                                required="required" />
+                                placeholder="${Resource.msg('placeholder.form.title', 'customBlogPosts', null)}" maxlength="200" />
                             <div class="invalid-feedback" id="cbp-title-error"
                                 data-required-msg="${Resource.msg('error.title.required', 'customBlogPosts', null)}"
                                 data-maxlength-msg="${Resource.msg('error.title.maxlength', 'customBlogPosts', null)}">
@@ -40,8 +39,7 @@
                                 ${Resource.msg('label.form.description', 'customBlogPosts', null)} <span class="text-danger">*</span>
                             </label>
                             <textarea class="form-control" id="cbp-description" name="description" rows="4"
-                                placeholder="${Resource.msg('placeholder.form.description', 'customBlogPosts', null)}"
-                                required="required"></textarea>
+                                placeholder="${Resource.msg('placeholder.form.description', 'customBlogPosts', null)}"></textarea>
                             <div class="invalid-feedback" id="cbp-description-error"
                                 data-required-msg="${Resource.msg('error.description.required', 'customBlogPosts', null)}">
                                 ${Resource.msg('error.description.required', 'customBlogPosts', null)}
