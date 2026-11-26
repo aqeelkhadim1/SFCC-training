@@ -1,6 +1,5 @@
 <isloop items="${pdict.posts}" var="post">
     <tr id="cbp-row-${post.postId}">
-        <td class="align-middle font-weight-bold text-muted small">${post.postId}</td>
         <td class="align-middle">
             <span class="badge bg-light border text-secondary px-2 py-1">
                 ${Resource.msgf('badge.author.id', 'customBlogPosts', null, post.authorId)}
@@ -26,6 +25,7 @@
                     data-bs-toggle="modal" data-bs-target="#customBlogPostModal"
                     data-mode="delete"
                     data-id="${post.postId}"
+                    data-authorid="${post.authorId}"
                     data-title="${post.title}"
                     data-url="${URLUtils.url('CustomBlogPosts-Delete')}">
                     ${Resource.msg('button.delete', 'customBlogPosts', null)}

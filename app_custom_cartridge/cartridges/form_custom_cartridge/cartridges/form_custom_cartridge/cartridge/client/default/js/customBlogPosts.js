@@ -119,6 +119,7 @@ $(document).ready(function () {
         var mode = $btn.attr('data-mode') || 'create';
         var cfg = MODAL_MODES[mode] || MODAL_MODES.create;
         var postId = $btn.attr('data-id') || '';
+        var authorId = $btn.attr('data-authorid') || '';
 
         $form[0].reset();
         $form.attr('action', $btn.attr('data-url') || '').find('.is-invalid').removeClass('is-invalid');
@@ -130,7 +131,7 @@ $(document).ready(function () {
         $('#cbp-modal-close-btn').toggleClass('btn-close-white', cfg.white);
         $('#cbp-modal-icon').attr('class', 'fa mr-2 ' + cfg.icon);
         $('#cbp-modal-title-text').text($btn.attr('data-modal-title') || $app.attr('data-delete-modal-title') || '');
-        $('#cbp-modal-badge').toggleClass('d-none', mode !== 'edit' || !postId).text(postId);
+        $('#cbp-modal-badge').toggleClass('d-none', mode !== 'edit' || !authorId).text(authorId ? '#' + authorId : '');
         $modal.find('.modal-dialog').toggleClass('modal-lg', !cfg.del);
         $submitBtn.removeClass('btn-primary btn-warning btn-danger').addClass(cfg.btn);
         $('#cbp-submit-text').text($btn.attr('data-submit-label') || $app.attr('data-delete-submit-label') || 'Submit');
@@ -138,10 +139,10 @@ $(document).ready(function () {
         $('#cbp-delete-preview').toggleClass('d-none', !cfg.del);
 
         if (cfg.del) {
-            $('#cbp-delete-id').text(postId);
+            $('#cbp-delete-id').text(authorId || postId);
             $('#cbp-delete-title').text($btn.attr('data-title') || '');
         } else if (mode === 'edit') {
-            $('#cbp-author-id').val($btn.attr('data-authorid') || '');
+            $('#cbp-author-id').val(authorId);
             $('#cbp-title').val($btn.attr('data-title') || '');
             $('#cbp-description').val($btn.attr('data-description') || '');
         }

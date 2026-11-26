@@ -50,11 +50,10 @@
                     <table class="table table-hover table-striped mb-0 text-left" id="cbp-posts-table">
                         <thead class="thead-light">
                             <tr>
-                                <th scope="col" style="width: 15%;">${Resource.msg('col.post.id', 'customBlogPosts', null)}</th>
-                                <th scope="col" style="width: 11%;">${Resource.msg('col.author.id', 'customBlogPosts', null)}</th>
-                                <th scope="col" style="width: 24%;">${Resource.msg('col.title', 'customBlogPosts', null)}</th>
-                                <th scope="col" style="width: 32%;">${Resource.msg('col.description', 'customBlogPosts', null)}</th>
-                                <th scope="col" class="text-center" style="width: 18%;">${Resource.msg('col.actions', 'customBlogPosts', null)}</th>
+                                <th scope="col" style="width: 12%;">${Resource.msg('col.author.id', 'customBlogPosts', null)}</th>
+                                <th scope="col" style="width: 28%;">${Resource.msg('col.title', 'customBlogPosts', null)}</th>
+                                <th scope="col" style="width: 40%;">${Resource.msg('col.description', 'customBlogPosts', null)}</th>
+                                <th scope="col" class="text-center" style="width: 20%;">${Resource.msg('col.actions', 'customBlogPosts', null)}</th>
                             </tr>
                         </thead>
                         <tbody id="cbp-table-body">
