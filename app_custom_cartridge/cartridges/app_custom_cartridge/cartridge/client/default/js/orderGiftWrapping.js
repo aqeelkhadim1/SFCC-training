@@ -1,6 +1,20 @@
 'use strict';
 
+/**
+ * Render the wrapping charge from the latest server totals.
+ * @param {jQuery} $row - wrapping fee row
+ * @param {Object} totals - basket or order totals
+ */
+function updateWrappingTotal($row, totals) {
+    $row.prop('hidden', !totals.orderGiftWrappingCharge);
+    $row.find('.order-gift-wrapping-amount').text(totals.orderGiftWrappingCharge || '');
+}
+
 $(function () {
+    $('body').on('checkout:updateCheckoutView', function (event, data) {
+        updateWrappingTotal($('.order-gift-wrapping-total'), data.order.totals);
+    });
+
     $('#order-gift-wrapping').on('change', function () {
         var $checkbox = $(this);
         var $wrapping = $checkbox.closest('[data-order-gift-wrapping]');
@@ -25,6 +39,7 @@ $(function () {
             $totals.find('.shipping-cost').text(response.totals.totalShippingCost);
             $totals.find('.tax-total').text(response.totals.totalTax);
             $totals.find('.grand-total').text(response.totals.grandTotal);
+            updateWrappingTotal($totals.find('.order-gift-wrapping-total'), response.totals);
             $('body').trigger('cart:update');
         }).fail(function (response) {
             $checkbox.prop('checked', previousSelection);

@@ -41,6 +41,15 @@
     </div>
 </div>
 
+<div class="row order-gift-wrapping-total" <isif condition="${!pdict.totals.orderGiftWrappingCharge}">hidden</isif>>
+    <div class="col-8">
+        <p>${Resource.msg('label.order.gift.wrapping.fee', 'orderGiftWrapping', null)}</p>
+    </div>
+    <div class="col-4">
+        <p class="text-end order-gift-wrapping-amount">${pdict.totals.orderGiftWrappingCharge || ''}</p>
+    </div>
+</div>
+
 <!-- Sales Tax -->
 <div class="row">
     <div class="col-8">
