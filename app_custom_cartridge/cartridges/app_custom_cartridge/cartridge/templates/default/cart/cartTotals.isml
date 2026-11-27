@@ -1,0 +1,71 @@
+<isif condition="${pdict.orderGiftWrapping}">
+    <isscript>
+        require('*/cartridge/scripts/assets').addJs('/js/orderGiftWrapping.js');
+    </isscript>
+    <div class="mb-3" data-order-gift-wrapping
+         data-update-url="${URLUtils.https('Cart-UpdateOrderGiftWrapping')}"
+         data-csrf-name="${pdict.csrf.tokenName}" data-csrf-token="${pdict.csrf.token}"
+         data-error-message="${Resource.msg('error.order.gift.wrapping.update', 'orderGiftWrapping', null)}">
+        <div class="form-check">
+            <input class="form-check-input" type="checkbox" id="order-gift-wrapping"
+                   aria-describedby="order-gift-wrapping-help"
+                   <isif condition="${pdict.orderGiftWrapping.selected}">checked</isif> />
+            <label class="form-check-label" for="order-gift-wrapping">
+                ${Resource.msg('label.order.gift.wrapping', 'orderGiftWrapping', null)}
+                <span class="order-gift-wrapping-price">${pdict.orderGiftWrapping.price}</span>
+            </label>
+        </div>
+        <small id="order-gift-wrapping-help" class="form-text">
+            ${Resource.msg('help.order.gift.wrapping', 'orderGiftWrapping', null)}
+        </small>
+        <div class="order-gift-wrapping-error text-danger" role="alert"></div>
+    </div>
+</isif>
+
+<div class="row">
+    <div class="col-8">
+        <p>${Resource.msg('label.shipping.cost','cart',null)}</p>
+    </div>
+    <div class="col-4">
+        <p class="text-end shipping-cost">${pdict.totals.totalShippingCost}</p>
+    </div>
+</div>
+
+<!--- Shipping Discount --->
+<div class="row shipping-discount <isif condition="${pdict.totals.shippingLevelDiscountTotal.value === 0}">hide-shipping-discount</isif>">
+    <div class="col-8">
+        <p>${Resource.msg('label.shipping.discount', 'common', null)}</p>
+    </div>
+    <div class="col-4">
+        <p class="text-end shipping-discount-total">- ${pdict.totals.shippingLevelDiscountTotal.formatted}</p>
+    </div>
+</div>
+
+<!-- Sales Tax -->
+<div class="row">
+    <div class="col-8">
+        <p>${Resource.msg('label.sales.tax','cart',null)}</p>
+    </div>
+    <div class="col-4">
+        <p class="text-end tax-total">${pdict.totals.totalTax}</p>
+    </div>
+</div>
+
+<!--- Order Discount --->
+<div class="row order-discount <isif condition="${pdict.totals.orderLevelDiscountTotal.value === 0}">hide-order-discount</isif>">
+    <div class="col-8">
+        <p>${Resource.msg('label.order.discount', 'common', null)}</p>
+    </div>
+    <div class="col-4">
+        <p class="text-end order-discount-total"> - ${pdict.totals.orderLevelDiscountTotal.formatted}</p>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-8">
+        <strong>${Resource.msg('label.estimatedtotal','cart',null)}</strong>
+    </div>
+    <div class="col-4">
+        <p class="text-end grand-total">${pdict.totals.grandTotal}</p>
+    </div>
+</div>

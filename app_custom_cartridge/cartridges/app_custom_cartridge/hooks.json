@@ -1,0 +1,12 @@
+{
+    "hooks": [
+        {
+            "name": "dw.order.calculate",
+            "script": "./cartridge/scripts/helpers/orderGiftWrapping.js"
+        },
+        {
+            "name": "dw.order.calculateTax",
+            "script": "./cartridge/scripts/helpers/orderGiftWrapping.js"
+        }
+    ]
+}
