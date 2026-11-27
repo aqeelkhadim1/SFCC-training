@@ -1,0 +1,84 @@
+<isscript>
+    var assets = require('*/cartridge/scripts/assets.js');
+    assets.addJs('/js/giftWrapping.js');
+</isscript>
+
+<isif condition="${pdict.totals.orderGiftWrappingConfig && pdict.totals.orderGiftWrappingConfig.enabled}">
+    <div class="row order-gift-wrapping mb-3">
+        <div class="col-12">
+            <div class="form-check d-flex justify-content-between align-items-center">
+                <div>
+                    <input class="form-check-input js-order-gift-wrap-checkbox" type="checkbox"
+                        id="orderGiftWrapping"
+                        data-action="${URLUtils.url('Cart-ToggleGiftWrapping')}"
+                        data-csrf-name="${pdict.csrf ? pdict.csrf.tokenName : 'csrf_token'}"
+                        data-csrf-token="${pdict.csrf ? pdict.csrf.token : ''}"
+                        data-error-msg="${Resource.msg('error.gift.wrapping.update', 'giftWrapping', null)}"
+                        <isif condition="${pdict.totals.isOrderGiftWrapped}">checked="checked"</isif> />
+                    <label class="form-check-label" for="orderGiftWrapping">
+                        ${Resource.msg('label.order.gift.wrapping.checkbox', 'giftWrapping', null)}
+                    </label>
+                </div>
+                <span class="order-gift-wrapping-price fw-semibold text-end">${pdict.totals.orderGiftWrappingConfig.formattedPrice}</span>
+            </div>
+        </div>
+    </div>
+</isif>
+
+<div class="row">
+    <div class="col-8">
+        <p>${Resource.msg('label.shipping.cost','cart',null)}</p>
+    </div>
+    <div class="col-4">
+        <p class="text-end shipping-cost">${pdict.totals.totalShippingCost}</p>
+    </div>
+</div>
+
+<!--- Shipping Discount --->
+<div class="row shipping-discount <isif condition="${pdict.totals.shippingLevelDiscountTotal.value === 0}">hide-shipping-discount</isif>">
+    <div class="col-8">
+        <p>${Resource.msg('label.shipping.discount', 'common', null)}</p>
+    </div>
+    <div class="col-4">
+        <p class="text-end shipping-discount-total">- ${pdict.totals.shippingLevelDiscountTotal.formatted}</p>
+    </div>
+</div>
+
+<!--- Order Gift Wrapping --->
+<div class="row order-gift-wrapping-row <isif condition="${!pdict.totals.orderGiftWrappingTotal || pdict.totals.orderGiftWrappingTotal.value === 0}">d-none</isif>">
+    <div class="col-8">
+        <p>${Resource.msg('label.order.gift.wrapping', 'giftWrapping', null)}</p>
+    </div>
+    <div class="col-4">
+        <p class="text-end order-gift-wrapping-total">${pdict.totals.orderGiftWrappingTotal ? pdict.totals.orderGiftWrappingTotal.formatted : '-'}</p>
+    </div>
+</div>
+
+<!-- Sales Tax -->
+<div class="row">
+    <div class="col-8">
+        <p>${Resource.msg('label.sales.tax','cart',null)}</p>
+    </div>
+    <div class="col-4">
+        <p class="text-end tax-total">${pdict.totals.totalTax}</p>
+    </div>
+</div>
+
+<!--- Order Discount --->
+<div class="row order-discount <isif condition="${pdict.totals.orderLevelDiscountTotal.value === 0}">hide-order-discount</isif>">
+    <div class="col-8">
+        <p>${Resource.msg('label.order.discount', 'common', null)}</p>
+    </div>
+    <div class="col-4">
+        <p class="text-end order-discount-total"> - ${pdict.totals.orderLevelDiscountTotal.formatted}</p>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-8">
+        <strong>${Resource.msg('label.estimatedtotal','cart',null)}</strong>
+    </div>
+    <div class="col-4">
+        <p class="text-end grand-total">${pdict.totals.grandTotal}</p>
+    </div>
+</div>
